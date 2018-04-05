@@ -1,6 +1,9 @@
 deals/**
+categories/**
+img/**
 users/**
 partners/**
 vectors/**
 preprocessing/**
+__pycache__/**
 .git

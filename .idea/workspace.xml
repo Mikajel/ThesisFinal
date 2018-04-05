@@ -4,6 +4,13 @@
     <list default="true" id="3bf1bd5a-bdf4-4ebc-aab6-69a199126677" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/categories/categories.dict" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/img/outlier_boxplot.png" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/preprocessing/event_amount_outliers.dict" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/preprocessing/event_medians.dict" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/preprocessing/normalization_borders.dict" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/preprocessing/targeted_deals_ids.set" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/preprocessing/unique_partners_in_deals_ids.list" afterPath="" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -203,27 +210,12 @@
             <path>
               <item name="DiplomaThesis" type="b2602c69:ProjectViewProjectNode" />
               <item name="DiplomaThesis" type="462c0819:PsiDirectoryNode" />
-              <item name="categories" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="DiplomaThesis" type="b2602c69:ProjectViewProjectNode" />
-              <item name="DiplomaThesis" type="462c0819:PsiDirectoryNode" />
               <item name="deals" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="DiplomaThesis" type="b2602c69:ProjectViewProjectNode" />
               <item name="DiplomaThesis" type="462c0819:PsiDirectoryNode" />
-              <item name="img" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="DiplomaThesis" type="b2602c69:ProjectViewProjectNode" />
-              <item name="DiplomaThesis" type="462c0819:PsiDirectoryNode" />
               <item name="partners" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="DiplomaThesis" type="b2602c69:ProjectViewProjectNode" />
-              <item name="DiplomaThesis" type="462c0819:PsiDirectoryNode" />
-              <item name="preprocessing" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -363,7 +355,7 @@
         <state relative-caret-position="1819">
           <caret line="110" column="7" lean-forward="false" selection-start-line="110" selection-start-column="7" selection-end-line="110" selection-end-column="7" />
           <folding>
-            <element signature="e#0#21#0" expanded="true" />
+            <element signature="e#0#21#0" expanded="false" />
             <marker date="1522776668861" expanded="true" signature="2294:2392" ph="SELECT DISTI... events" />
             <marker date="1522776668861" expanded="true" signature="2294:2411" ph="SELECT DISTI... events" />
             <marker date="1522776668861" expanded="true" signature="2294:2428" ph="SELECT DISTI... events" />
@@ -496,7 +488,7 @@
         <state relative-caret-position="391">
           <caret line="24" column="7" lean-forward="true" selection-start-line="24" selection-start-column="7" selection-end-line="24" selection-end-column="7" />
           <folding>
-            <element signature="e#0#21#0" expanded="true" />
+            <element signature="e#0#21#0" expanded="false" />
             <marker date="1522776668861" expanded="true" signature="2294:2392" ph="SELECT DISTI... events" />
             <marker date="1522776668861" expanded="true" signature="2294:2411" ph="SELECT DISTI... events" />
             <marker date="1522776668861" expanded="true" signature="2294:2428" ph="SELECT DISTI... events" />
@@ -601,7 +593,7 @@
         <state relative-caret-position="1020">
           <caret line="61" column="30" lean-forward="true" selection-start-line="61" selection-start-column="30" selection-end-line="61" selection-end-column="30" />
           <folding>
-            <element signature="e#0#21#0" expanded="true" />
+            <element signature="e#0#21#0" expanded="false" />
             <marker date="1522776668861" expanded="true" signature="2294:2392" ph="SELECT DISTI... events" />
             <marker date="1522776668861" expanded="true" signature="2294:2411" ph="SELECT DISTI... events" />
             <marker date="1522776668861" expanded="true" signature="2294:2428" ph="SELECT DISTI... events" />
@@ -706,7 +698,7 @@
         <state relative-caret-position="1020">
           <caret line="61" column="24" lean-forward="false" selection-start-line="61" selection-start-column="24" selection-end-line="61" selection-end-column="24" />
           <folding>
-            <element signature="e#0#21#0" expanded="true" />
+            <element signature="e#0#21#0" expanded="false" />
             <marker date="1522776668861" expanded="true" signature="2294:2392" ph="SELECT DISTI... events" />
             <marker date="1522776668861" expanded="true" signature="2294:2411" ph="SELECT DISTI... events" />
             <marker date="1522776668861" expanded="true" signature="2294:2428" ph="SELECT DISTI... events" />
@@ -811,7 +803,7 @@
         <state relative-caret-position="799">
           <caret line="47" column="0" lean-forward="true" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="0" />
           <folding>
-            <element signature="e#0#21#0" expanded="true" />
+            <element signature="e#0#21#0" expanded="false" />
             <marker date="1522776668861" expanded="true" signature="2294:2392" ph="SELECT DISTI... events" />
             <marker date="1522776668861" expanded="true" signature="2294:2411" ph="SELECT DISTI... events" />
             <marker date="1522776668861" expanded="true" signature="2294:2428" ph="SELECT DISTI... events" />
@@ -881,7 +873,7 @@
         <state relative-caret-position="646">
           <caret line="35" column="0" lean-forward="false" selection-start-line="35" selection-start-column="0" selection-end-line="35" selection-end-column="0" />
           <folding>
-            <element signature="e#0#21#0" expanded="true" />
+            <element signature="e#0#21#0" expanded="false" />
             <marker date="1522776668861" expanded="true" signature="2294:2392" ph="SELECT DISTI... events" />
             <marker date="1522776668861" expanded="true" signature="2294:2411" ph="SELECT DISTI... events" />
             <marker date="1522776668861" expanded="true" signature="2294:2428" ph="SELECT DISTI... events" />
@@ -979,7 +971,7 @@
         <state relative-caret-position="1088">
           <caret line="69" column="0" lean-forward="false" selection-start-line="69" selection-start-column="0" selection-end-line="69" selection-end-column="0" />
           <folding>
-            <element signature="e#0#20#0" expanded="true" />
+            <element signature="e#0#20#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -989,7 +981,7 @@
         <state relative-caret-position="364">
           <caret line="235" column="26" lean-forward="false" selection-start-line="235" selection-start-column="26" selection-end-line="235" selection-end-column="26" />
           <folding>
-            <element signature="e#0#21#0" expanded="true" />
+            <element signature="e#0#21#0" expanded="false" />
             <marker date="1522776668861" expanded="true" signature="2294:2392" ph="SELECT DISTI... events" />
             <marker date="1522776668861" expanded="true" signature="2294:2411" ph="SELECT DISTI... events" />
             <marker date="1522776668861" expanded="true" signature="2294:2428" ph="SELECT DISTI... events" />
