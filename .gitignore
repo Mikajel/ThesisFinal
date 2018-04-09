@@ -6,4 +6,5 @@ partners/**
 vectors/**
 preprocessing/**
 __pycache__/**
+.idea/**
 .git

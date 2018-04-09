@@ -4,23 +4,41 @@ import numpy as np
 import config as cfg
 from os import path, getcwd, listdir
 import pickle
+from sklearn.metrics import roc_auc_score
 
-input_batch_filepaths = [path.join(getcwd(), cfg.dir_vectors, filename)
-                         for filename in listdir(path.join(getcwd(), cfg.dir_users))]
 
-batch_amount = len(input_batch_filepaths)
+def load_vector_file(filepath: str) -> ([[float or int]], [float or int]):
 
-train_amount = int(batch_amount*0.6)
-test_amount = int(batch_amount*0.3)
-valid_amount = int(batch_amount*0.1)
+    with open(path.join(getcwd(), cfg.dir_vectors, filepath), 'rb') as vector_file:
 
-train_filepaths = input_batch_filepaths[:train_amount]
-test_filepaths = input_batch_filepaths[train_amount:train_amount+test_amount]
-valid_filepaths = input_batch_filepaths[train_amount+test_amount:]
+        vector_tuples = pickle.load(vector_file)
 
-print(len(train_filepaths))
-print(len(test_filepaths))
-print(len(valid_filepaths))
+    x = np.array([np.array(vector_tuple[0]) for vector_tuple in vector_tuples])
+    y = np.array([vector_tuple[1] for vector_tuple in vector_tuples])
+
+    return x, y
+
+
+def load_multiple_vector_files(filepaths: [str]):
+    """
+    Loads multiple vector files and appends vectors together.
+    Good idea for test and valid set.
+    Not a good idea for train, too much data in RAM, do in batches.
+    :param filepaths:
+    list of file paths to load vectors from
+    :return:
+    """
+
+    inputs, targets = load_vector_file(filepaths[0])
+
+    for filepath in filepaths[1:]:
+
+        x, y = load_vector_file(filepath)
+
+        np.concatenate([inputs, x])
+        np.concatenate([targets, y])
+
+    return inputs, targets
 
 
 def get_input_target_lengths(check_print: bool=False) -> (int, int, int):
@@ -67,17 +85,30 @@ def bias_variable(shape):
     return tf.Variable(initial)
 
 
-def lstm(x, weight, bias, input_length, n_steps, n_classes):
-    cell = rnn_cell.LSTMCell(cfg.n_hidden_cells_in_layer, state_is_tuple=True)
-    multi_layer_cell = tf.nn.rnn_cell.MultiRNNCell([cell] * cfg.n_hidden_layers)
+def lstm(x, weight, bias, n_steps, n_classes):
 
-    output, state = tf.nn.dynamic_rnn(multi_layer_cell, x, dtype=tf.float32)
+    print(cfg.n_hidden_layers * [cfg.n_hidden_cells_in_layer])
 
+    rnn_layers = [
+        tf.nn.rnn_cell.LSTMCell(size, state_is_tuple=True)
+        for size in cfg.n_hidden_layers * [cfg.n_hidden_cells_in_layer]
+    ]
+
+    multi_rnn_cell = tf.nn.rnn_cell.MultiRNNCell(rnn_layers)
+
+    # FIXME : ERROR binding x to LSTM as it is
+    output, state = tf.nn.dynamic_rnn(multi_rnn_cell, x, dtype=tf.float32)
+    # FIXME : ERROR
+
+    # turn output around axis to be 1-dimensional
     output_flattened = tf.reshape(output, [-1, cfg.n_hidden_cells_in_layer])
     output_logits = tf.add(tf.matmul(output_flattened, weight), bias)
 
     output_all = tf.nn.sigmoid(output_logits)
     output_reshaped = tf.reshape(output_all, [-1, n_steps, n_classes])
+
+    # ??? switch batch size with sequence size. ???
+    # then gather last time step values
     output_last = tf.gather(tf.transpose(output_reshaped, [1, 0, 2]), n_steps - 1)
 
     # output = tf.transpose(output, [1, 0, 2])
@@ -87,80 +118,83 @@ def lstm(x, weight, bias, input_length, n_steps, n_classes):
     return output_last, output_all
 
 
-n_input, n_steps, n_classes = get_input_target_lengths(check_print=True)
+def run_thesis():
 
-x = tf.placeholder("float", [None, n_steps, n_input])
-y = tf.placeholder("float", [None, n_classes])
-y_steps = tf.placeholder("float", [None, n_classes])
+    # TODO: LIMITING AMOUNT OF FILES
+    input_batch_filepaths = sorted(
+        [path.join(getcwd(), cfg.dir_vectors, filename)
+         for filename in listdir(path.join(getcwd(), cfg.dir_vectors))
+         if len(filename.split('_')[2]) < 3
+         ]
+    )
 
+    # # cutting the last incomplete file(not full wrap amount)
+    # input_batch_filepaths = input_batch_filepaths[:-1]
+    # print(f'Omitting {input_batch_filepaths[-1]}')
 
+    batch_amount = len(input_batch_filepaths)
 
+    train_amount = int(batch_amount*0.7)
+    test_amount = int(batch_amount*0.2)
+    valid_amount = int(batch_amount*0.1)
 
+    train_filepaths = input_batch_filepaths[:train_amount]
+    test_filepaths = input_batch_filepaths[train_amount:train_amount+test_amount]
+    valid_filepaths = input_batch_filepaths[train_amount+test_amount:]
 
+    print(f'Training:   {cfg.pickle_wrap_amount * len(train_filepaths)} vectors')
+    print(f'Testing:    {cfg.pickle_wrap_amount * len(test_filepaths)} vectors')
+    print(f'Validation: {cfg.pickle_wrap_amount * len(valid_filepaths)} vectors')
 
+    x_test, y_test = load_multiple_vector_files(test_filepaths)
+    x_valid, y_valid = load_multiple_vector_files(valid_filepaths)
 
-"""
-# one file == one batch
-batch_size = cfg.pickle_wrap_amount
-
-data = tf.placeholder(tf.float32, [batch_size, None, length_input])
-target = tf.placeholder(tf.float32, [batch_size, None, length_output])
-
-# FIXME: using single layer for now
-# lstm_stacked = tf.contrib.rnn.MultiRNNCell(
-#     [lstm_cell(hidden_cells=cfg.n_hidden_cells_in_layer) for _ in range(cfg.n_hidden_layers)]
-# )
-cell = lstm_cell(hidden_cells=cfg.n_hidden_cells_in_layer)
-
-outputs, final_state = tf.nn.dynamic_rnn(cell, data, dtype=tf.float32)
-
-
-val = tf.transpose(val, [1, 0, 2])
-last = tf.gather(val, int(val.get_shape()[0]) - 1)
-
-weight = weight_variable(target)
-bias = bias_variable(target)
-prediction = tf.nn.sigmoid(tf.matmul(last, weight) + bias)
-
-cross_entropy = -tf.reduce_sum(target * tf.log(tf.clip_by_value(prediction, 1e-10, 1.0)))
-
-optimizer = tf.train.AdamOptimizer()
-minimize = optimizer.minimize(cross_entropy)
+    n_input, n_steps, n_classes = get_input_target_lengths(check_print=False)
 
 
+    # FIXME n_input je asi problem. V exampli je 1 a u mna sirka input vectora
+    print(n_steps)
+    print(n_input)
+    print(n_classes)
+    x = tf.placeholder("float", [None, n_steps, n_input])
+    y = tf.placeholder("float", [None, n_classes])
+    y_steps = tf.placeholder("float", [cfg.pickle_wrap_amount, n_classes])
 
-init_op = tf.initialize_all_variables()
-sess = tf.Session()
-sess.run(init_op)
+    weight = weight_variable([cfg.n_hidden_cells_in_layer, n_classes])
+    bias = bias_variable([n_classes])
 
+    y_last, y_all = lstm(x, weight, bias, n_steps, n_classes)
 
-# batch loop
-for filepath in input_batch_filepaths:
-    with open(filepath, 'rb') as batch_file:
+    #all_steps_cost=tf.reduce_mean(-tf.reduce_mean((y_steps * tf.log(y_all))+(1 - y_steps) * tf.log(1 - y_all),reduction_indices=1))
+    all_steps_cost = -tf.reduce_mean((y_steps * tf.log(y_all)) + (1 - y_steps) * tf.log(1 - y_all))
+    last_step_cost = -tf.reduce_mean((y * tf.log(y_last)) + ((1 - y) * tf.log(1 - y_last)))
+    loss_function = (cfg.alpha * all_steps_cost) + ((1 - cfg.alpha) * last_step_cost)
 
-        # set of users from file == batch
-        batch_users = pickle.load(batch_file)
-        for user in batch_users:
+    optimizer = tf.train.AdamOptimizer(learning_rate=cfg.learning_rate).minimize(loss_function)
 
-            inputs  = [vector_tuple[0] for vector_tuple in batch_users]
-            targets = [vector_tuple[1] for vector_tuple in batch_users]
+    with tf.Session() as session:
 
+        tf.global_variables_initializer().run()
 
-"""
+        for epoch in range(cfg.epoch_amount):
+            for batch_filepath in train_filepaths:
 
+                x_batch, y_batch = load_vector_file(batch_filepath)
 
+                batch_y_steps = np.tile(y_batch, ((x_batch.shape[1]), 1))
 
-# def LSTM(x, weight, bias):
-#
-#     cell = rnn_cell.LSTMCell(n_hidden, state_is_tuple=True)
-#     multi_layer_cell = tf.nn.rnn_cell.MultiRNNCell([cell] * 2)
-#     output, state = tf.nn.dynamic_rnn(multi_layer_cell, x, dtype=tf.float32)
-#     output_flattened = tf.reshape(output, [-1, n_hidden])
-#     output_logits = tf.add(tf.matmul(output_flattened, weight), bias)
-#     output_all = tf.nn.sigmoid(output_logits)
-#     output_reshaped = tf.reshape(output_all, [-1, n_steps, n_classes])
-#     output_last = tf.gather(tf.transpose(output_reshaped, [1, 0, 2]), n_steps - 1)
-#     #output = tf.transpose(output, [1, 0, 2])
-#     #last = tf.gather(output, int(output.get_shape()[0]) - 1)
-#     #output_last = tf.nn.sigmoid(tf.matmul(last, weight) + bias)
-#     return output_last, output_all
+                _, c = session.run(
+                    [optimizer, loss_function],
+                    feed_dict={
+                        x: x_batch,
+                        y: y_batch,
+                        y_steps: batch_y_steps
+                    }
+                )
+            print('Testing after epoch: ')
+            y_pred = session.run(y_last, feed_dict={x: x_test})
+            print("ROC AUC Score: ", roc_auc_score(y_test, y_pred))
+
+        print('Validating: ')
+        y_pred = session.run(y_last, feed_dict={x: x_valid})
+        print("ROC AUC Score: ", roc_auc_score(y_valid, y_pred))

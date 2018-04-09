@@ -223,7 +223,7 @@ def create_and_save_all_users(cookie_limit: int or None=None):
             )
 
 
-def count_and_save_event_medians(cookie_limit: int):
+def count_and_save_event_medians(cookie_limit: int, categories, deals):
 
     unique_cookies = sql_handler.fetch_unique_user_cookies(limit=cookie_limit)
     employee_ids = sql_handler.fetch_employee_ids()
@@ -239,7 +239,7 @@ def count_and_save_event_medians(cookie_limit: int):
     with sql_handler.BehaviourDatabaseCursor() as db_cursor:
         for cookie in unique_cookies:
 
-            new_user = User(db_cursor, cookie, event_amount_outliers, employee_ids, None)
+            new_user = User(db_cursor, cookie, event_amount_outliers, employee_ids, None, categories, deals)
 
             # filtering users
             if new_user.remove_flag:
