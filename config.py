@@ -78,4 +78,4 @@ learning_rate = 0.001
 alpha = 0.5
 n_hidden_layers = 2
 n_hidden_cells_in_layer = 512
-epoch_amount = 5
+epoch_amount = 3

@@ -96,9 +96,7 @@ def lstm(x, weight, bias, n_steps, n_classes):
 
     multi_rnn_cell = tf.nn.rnn_cell.MultiRNNCell(rnn_layers)
 
-    # FIXME : ERROR binding x to LSTM as it is
     output, state = tf.nn.dynamic_rnn(multi_rnn_cell, x, dtype=tf.float32)
-    # FIXME : ERROR
 
     # turn output around axis to be 1-dimensional
     output_flattened = tf.reshape(output, [-1, cfg.n_hidden_cells_in_layer])
@@ -134,9 +132,9 @@ def run_thesis():
 
     batch_amount = len(input_batch_filepaths)
 
-    train_amount = int(batch_amount*0.7)
-    test_amount = int(batch_amount*0.2)
-    valid_amount = int(batch_amount*0.1)
+    train_amount = int(batch_amount * 0.7)
+    test_amount  = int(batch_amount * 0.2)
+    valid_amount = int(batch_amount * 0.1)
 
     train_filepaths = input_batch_filepaths[:train_amount]
     test_filepaths = input_batch_filepaths[train_amount:train_amount+test_amount]
@@ -149,16 +147,21 @@ def run_thesis():
     x_test, y_test = load_multiple_vector_files(test_filepaths)
     x_valid, y_valid = load_multiple_vector_files(valid_filepaths)
 
+    # print(y_test.shape)
+    # for test in y_test:
+    #     positions = [index for index, value in enumerate(test) if value]
+    #     print(f'{sum(test)}: {len(positions)}')
+    # return
+
     n_input, n_steps, n_classes = get_input_target_lengths(check_print=False)
 
-
-    # FIXME n_input je asi problem. V exampli je 1 a u mna sirka input vectora
     print(n_steps)
     print(n_input)
     print(n_classes)
+
     x = tf.placeholder("float", [None, n_steps, n_input])
     y = tf.placeholder("float", [None, n_classes])
-    y_steps = tf.placeholder("float", [cfg.pickle_wrap_amount, n_classes])
+    y_steps = tf.placeholder("float", [None, n_classes])
 
     weight = weight_variable([cfg.n_hidden_cells_in_layer, n_classes])
     bias = bias_variable([n_classes])
@@ -177,10 +180,12 @@ def run_thesis():
         tf.global_variables_initializer().run()
 
         for epoch in range(cfg.epoch_amount):
-            for batch_filepath in train_filepaths:
+            print(f'\nEpoch number {epoch+1}\n')
+            for index, batch_filepath in enumerate(train_filepaths[:5]):
+
+                print(f'Batch number {index+1}')
 
                 x_batch, y_batch = load_vector_file(batch_filepath)
-
                 batch_y_steps = np.tile(y_batch, ((x_batch.shape[1]), 1))
 
                 _, c = session.run(
@@ -191,10 +196,12 @@ def run_thesis():
                         y_steps: batch_y_steps
                     }
                 )
-            print('Testing after epoch: ')
-            y_pred = session.run(y_last, feed_dict={x: x_test})
-            print("ROC AUC Score: ", roc_auc_score(y_test, y_pred))
+
+            print('\nTesting after epoch: ')
+
+            y_predictions = session.run(y_last, feed_dict={x: x_test})
+            print("ROC AUC Score: ", roc_auc_score(y_test, y_predictions))
 
         print('Validating: ')
-        y_pred = session.run(y_last, feed_dict={x: x_valid})
-        print("ROC AUC Score: ", roc_auc_score(y_valid, y_pred))
+        y_predictions = session.run(y_last, feed_dict={x: x_valid})
+        print("ROC AUC Score: ", roc_auc_score(y_valid, y_predictions))
