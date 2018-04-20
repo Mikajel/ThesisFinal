@@ -4,7 +4,8 @@ import numpy as np
 import config as cfg
 from os import path, getcwd, listdir
 import pickle
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, f1_score
+import math
 
 
 def load_vector_file(filepath: str) -> ([[float or int]], [float or int]):
@@ -35,8 +36,8 @@ def load_multiple_vector_files(filepaths: [str]):
 
         x, y = load_vector_file(filepath)
 
-        np.concatenate([inputs, x])
-        np.concatenate([targets, y])
+        inputs = np.concatenate([inputs, x])
+        targets = np.concatenate([targets, y])
 
     return inputs, targets
 
@@ -144,13 +145,41 @@ def run_thesis():
     print(f'Testing:    {cfg.pickle_wrap_amount * len(test_filepaths)} vectors')
     print(f'Validation: {cfg.pickle_wrap_amount * len(valid_filepaths)} vectors')
 
-    x_test, y_test = load_multiple_vector_files(test_filepaths)
-    x_valid, y_valid = load_multiple_vector_files(valid_filepaths)
+    # NOTE: FULL DATASET
+    # x_test, y_test = load_multiple_vector_files(test_filepaths)
+    # x_valid, y_valid = load_multiple_vector_files(valid_filepaths)
+
+    x_test, y_test = load_multiple_vector_files(test_filepaths[0:5])
+    x_valid, y_valid = load_multiple_vector_files(valid_filepaths[0:5])
+
+    print(f'Shape X_test: {x_test.shape}')
+    print(f'Shape Y_test: {y_test.shape}')
+
+    print(f'Shape X_valid: {x_valid.shape}')
+    print(f'Shape Y_valid: {y_valid.shape}')
 
     # print(y_test.shape)
     # for test in y_test:
     #     positions = [index for index, value in enumerate(test) if value]
     #     print(f'{sum(test)}: {len(positions)}')
+    #
+    # print(sum([sum(test_sample) for test_sample in y_test]))
+    # return
+
+    # classes = {}
+    # for index in range(7172):
+    #     classes[index] = 0
+    #
+    # for test in y_test:
+    #     for index, value in enumerate(test):
+    #         if value:
+    #             classes[index] += 1
+    #
+    # for key, value in classes.items():
+    #     print(f'{key}: {value}')
+    #
+    # print(f'Sum of all partner findings: {sum(value for value in classes.values())}')
+    #
     # return
 
     n_input, n_steps, n_classes = get_input_target_lengths(check_print=False)
@@ -181,7 +210,7 @@ def run_thesis():
 
         for epoch in range(cfg.epoch_amount):
             print(f'\nEpoch number {epoch+1}\n')
-            for index, batch_filepath in enumerate(train_filepaths[:5]):
+            for index, batch_filepath in enumerate(train_filepaths[:1]):
 
                 print(f'Batch number {index+1}')
 
@@ -199,9 +228,21 @@ def run_thesis():
 
             print('\nTesting after epoch: ')
 
-            y_predictions = session.run(y_last, feed_dict={x: x_test})
-            print("ROC AUC Score: ", roc_auc_score(y_test, y_predictions))
+            y_predictions = session.run(y_last, feed_dict={x: x_batch})
+
+            rounded_predictions = []
+            for prediction in y_predictions:
+                rounded_predictions.append(
+                    [int(np.round(target)) for target in prediction]
+                )
+
+            rounded_predictions = np.array(rounded_predictions)
+
+            for index in range(50):
+                print(f'{sum(y_test[index])} : {sum(rounded_predictions[index])}')
+
+            print("F1 Score: ", f1_score(y_batch, rounded_predictions, average='samples'))
 
         print('Validating: ')
         y_predictions = session.run(y_last, feed_dict={x: x_valid})
-        print("ROC AUC Score: ", roc_auc_score(y_valid, y_predictions))
+        print("F1 Score: ", f1_score(y_valid, y_predictions, average='samples'))

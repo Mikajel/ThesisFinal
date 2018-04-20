@@ -24,7 +24,7 @@ def get_not_matched():
     return __not_found_deals, __not_found_partners
 
 
-def create_userfile_vectors(users_filename, deals, partners, categories) -> [tuple]:
+def create_userfile_vectors(users_filename, deals, partners, categories, input_partners: [], targeted_partners: []) -> [tuple]:
 
     file_counter = int(users_filename.split('_')[-1])
 
@@ -37,12 +37,18 @@ def create_userfile_vectors(users_filename, deals, partners, categories) -> [tup
     vectors = []
 
     for user in users:
-        vectors.append(create_user_vectors(user, deals, partners, categories))
+        user_vectors = create_user_vectors(user, deals, partners, categories, input_partners, targeted_partners)
+        
+        # None returned for users with no target partner in target part of events
+        if user_vectors[1] is not None:
+            vectors.append(user_vectors)
 
     print(f'Pickling {len(vectors)} vectors')
 
     with open(vectors_filepath, 'wb') as pickle_file:
         pickle.dump(vectors, pickle_file)
+
+    return len(vectors)
 
 
 def load_userfile_vectors(file_counter: int):
@@ -53,7 +59,7 @@ def load_userfile_vectors(file_counter: int):
         return pickle.load(vectors_filepath)
 
 
-def create_user_vectors(user, deals, partners, categories) -> (list, list):
+def create_user_vectors(user, deals, partners, categories, input_partners, targeted_partners) -> (list, list):
     """
     Create vectors for neural network from user.
 
@@ -66,20 +72,24 @@ def create_user_vectors(user, deals, partners, categories) -> (list, list):
 
     categories_ids_list = list(categories.keys())
     categories_ids_list.sort()
-    partners_ids_list = list(partners.keys())
-    partners_ids_list.sort()
+    # partners_ids_list = list(partners.keys())
+    
+    # sort because tuple is 
+    targeted_partners.sort()
+    input_partners.sort()
 
     input_vectors = __create_input_vectors(
         user.events[:cfg.user_event_split],
         deals,
         partners,
-        categories_ids_list
+        categories_ids_list,
+        input_partners
     )
 
     target_vector = __create_target_vector(
         user.events[cfg.user_event_split:],
         deals,
-        partners_ids_list
+        targeted_partners
     )
 
     user_vectors = (input_vectors, target_vector)
@@ -87,7 +97,7 @@ def create_user_vectors(user, deals, partners, categories) -> (list, list):
     return user_vectors
 
 
-def __create_input_vectors(events, deals_dict: {}, partner_dict: {}, categories_id_list) -> []:
+def __create_input_vectors(events, deals_dict: {}, partner_dict: {}, categories_id_list, input_partners: []) -> []:
 
     def get_month_subvector() -> [float]:
 
@@ -305,6 +315,26 @@ def __create_input_vectors(events, deals_dict: {}, partner_dict: {}, categories_
 
         else:
             return [0]
+    
+    def get_event_partner_subvector() -> [int]:
+        
+        def get_event_partner_id():
+            
+            if event.event_type in cfg.events_targeting_deals:
+                event_deal = deals_dict[event.target_entity_id]
+                event_partner_id = event_deal.id_partner
+            else:
+                event_partner_id = None
+            
+            return event_partner_id
+        
+        event_partner_subvector = copy(baseline_partners_subvector)
+        event_partner_id = get_event_partner_id()
+        
+        if event_partner_id is not None:
+            event_partner_subvector[input_partners.index(event_partner_id)] = 1
+        
+        return event_partner_subvector
 
     def get_event_duration_subvector() -> [float]:
 
@@ -337,6 +367,7 @@ def __create_input_vectors(events, deals_dict: {}, partner_dict: {}, categories_
         vector += get_price_subvector()
         vector += get_deal_coupons_subvector()
         vector += get_deal_pageviews_subvector()
+        vector += get_event_partner_subvector()
 
         # categories
         vector += get_category_subvector()
@@ -346,6 +377,8 @@ def __create_input_vectors(events, deals_dict: {}, partner_dict: {}, categories_
     input_vectors = []
 
     normalization_dict = load_normalization_values()
+    
+    baseline_partners_subvector = [0]*len(input_partners)
 
     for event in events:
         input_vectors.append(create_vector())
@@ -353,30 +386,32 @@ def __create_input_vectors(events, deals_dict: {}, partner_dict: {}, categories_
     return input_vectors
 
 
-def __create_target_vector(events, deals_dict: {}, partners_ids_list: []) -> []:
+def __create_target_vector(events, deals_dict: {}, partners_ids_list: []) -> [] or None:
 
-    def gather_events_partners_ids(event_subset: []):
+    def gather_partner_id(event_subset: []):
 
-        events_partners_ids = set()
+        events_partners_ids = []
 
         for event in event_subset:
 
             if event.event_type in cfg.events_targeting_deals:
                 event_deal = deals_dict[event.target_entity_id]
                 event_partner_id = event_deal.id_partner
-                events_partners_ids.add(event_partner_id)
-
-        return list(events_partners_ids)
+                events_partners_ids.append(event_partner_id)
+        try:
+            return [id_ for id_ in events_partners_ids if id_ is not None][0]
+        except IndexError:
+            return None
 
     def create_vector(event_subset: []) -> []:
 
         vector = copy(baseline_target)
 
-        for partner_id in gather_events_partners_ids(event_subset):
-            try:
-                vector[partners_ids_list.index(partner_id)] = 1
-            except ValueError:
-                print(f'partner {partner_id} not found in list of ids.')
+        target_partner = gather_partner_id(event_subset)
+        if target_partner is None:
+            return None
+        else:
+            vector[partners_ids_list.index(target_partner)] = 1
 
         return vector
 
@@ -450,3 +485,46 @@ def normalize_value(*, value: float, min_value: float, max_value: float) -> floa
 
     return (float(value) - min_value) / (max_value - min_value)
 
+
+def sort_and_save_vectors_by_target_partners(target_partners_list: []):
+
+    target_partners_list.sort()
+
+    dict_sorted_partner_vectors = {}
+
+    all_vectors = []
+
+    total_resorted_vectors = 0
+
+    for filename in listdir(path.join(getcwd(), cfg.dir_vectors)):
+
+        with open(join(getcwd(), cfg.dir_vectors, filename), 'rb') as vectors_file:
+
+            all_vectors += pickle.load(vectors_file)
+
+    for vector in all_vectors:
+
+        target_vector = vector[1]
+        target_class_position = target_vector.index(1)
+
+        vector_partner_id = target_partners_list[target_class_position]
+
+        try:
+            dict_sorted_partner_vectors[vector_partner_id].append(vector)
+        except KeyError:
+            dict_sorted_partner_vectors[vector_partner_id] = [vector]
+
+    for partner_id, vectors_targeting_partner in dict_sorted_partner_vectors.items():
+
+        filepath = join(getcwd(),
+                        cfg.dir_sorted_partner_vectors_input_with_partners,
+                        cfg.sorted_heavy_partner_vectors_baseline_filename + str(partner_id))
+
+        with open(filepath, 'wb') as partner_vectors_file:
+            pickle.dump(vectors_targeting_partner, partner_vectors_file)
+            print(f'Saved {len(vectors_targeting_partner)} vectors to {partner_id}')
+            total_resorted_vectors += len(vectors_targeting_partner)
+
+    print(f'Resorted {total_resorted_vectors} vectors')
+
+    print(f'Sorted vectors of {len(target_partners_list)} partners into {len(listdir(path.join(getcwd(), cfg.dir_partners_grouped_vectors)))} files')

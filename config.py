@@ -27,7 +27,7 @@ datetime_format = '%Y-%m-%d %H:%M:%S.%f'
 dir_img = 'img'
 boxplot_png_filename = 'outlier_boxplot.png'
 
-pickle_wrap_amount = 500
+pickle_wrap_amount = 100
 session_cutout_time = 1800
 
 unique_partners_ids_in_partners = 'partners_in_partneraddresses.set'
@@ -53,9 +53,13 @@ medians_dict_file = 'event_medians.dict'
 
 dir_vectors = 'vectors'
 vectors_baseline_filename = 'vector_tuples_'
+dir_partners_grouped_vectors = 'partner_grouped_vectors'
+sorted_partner_vectors_baseline_filename = 'sorted_vectors_'
+dir_sorted_partner_vectors_input_with_partners = 'partner_grouped_heavy_vectors'
+sorted_heavy_partner_vectors_baseline_filename = 'sorted_heavy_vectors_'
 
-user_event_amount_minimum = 50
-user_event_split = 25
+user_event_amount_minimum = 20
+user_event_split = 10
 session_event_amount_minimum = 8
 
 accepted_user_events = [
@@ -75,7 +79,8 @@ events_targeting_deals = [
 ]
 
 learning_rate = 0.001
-alpha = 0.5
+alpha = 0.7
 n_hidden_layers = 2
-n_hidden_cells_in_layer = 512
-epoch_amount = 3
+n_hidden_cells_in_layer = 1024
+epoch_amount = 25
+

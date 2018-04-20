@@ -634,8 +634,8 @@ def get_ranges_event_cookie_amount(db_cursor: BehaviourDatabaseCursor):
         "GROUP BY cookie "
         "ORDER BY event_amount DESC"
         ") AS event_amounts "
-        "WHERE event_amount >= 50"
-        ") AS limited_event_amounts;"
+        "WHERE event_amount >= %s::BIGINT"
+        ") AS limited_event_amounts;", (cfg.user_event_amount_minimum,)
     )
 
     upper_quartile = db_cursor.fetchall()[0][0]

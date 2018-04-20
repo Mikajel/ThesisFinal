@@ -383,4 +383,80 @@ def show_boxplot(data: [], outlier_borders: {}, save_to_file: bool = False):
         )
 
     bp_figure.show()
+    
+def get_input_partner_ids(users: [User], deals: {}, partners: {}) -> ([], int):
+    """
+    Has to pre-fetch input vector partners and find unique set of ids to make target more sparse
+        and allow every class to have at least one example for class balancing.
+
+    :param users:
+    :param deals:
+    :param partners:
+    :return:
+    """
+
+    input_partners = set()
+    users_with_found_partners = 0
+
+    for user in users:
+
+        user_input_partners = []
+
+        # events to construct target vector from
+        for event in user.events[:cfg.user_event_split]:
+
+            if event.event_type in cfg.events_targeting_deals:
+
+                id_deal = event.target_entity_id
+                deal = deals[id_deal]
+                id_partner = deal.id_partner
+
+                if id_partner is not None:
+                    user_input_partners.append(id_partner)
+        
+        if len(user_input_partners):
+            input_partners = input_partners.union(set(user_input_partners))
+            users_with_found_partners += 1
+
+
+    return list(input_partners), users_with_found_partners
+
+
+def get_target_partner_ids(users: [User], deals: {}, partners: {}) -> ([], int):
+    """
+    Has to pre-fetch target vector partners and find unique set of ids to make target more sparse
+        and allow every class to have at least one example for class balancing.
+
+    :param users:
+    :param deals:
+    :param partners:
+    :return:
+    """
+
+    target_partners = set()
+    users_with_found_partners = 0
+
+    for user in users:
+
+        user_target_partners = []
+
+        # events to construct target vector from
+        for event in user.events[cfg.user_event_split:]:
+
+            if event.event_type in cfg.events_targeting_deals:
+
+                id_deal = event.target_entity_id
+                deal = deals[id_deal]
+                id_partner = deal.id_partner
+
+                if id_partner is not None:
+                    user_target_partners.append(id_partner)
+
+        try:
+            target_partners.add(user_target_partners[0])
+            users_with_found_partners += 1
+        except IndexError:
+            pass
+
+    return list(target_partners), users_with_found_partners
 
