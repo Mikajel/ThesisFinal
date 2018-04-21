@@ -23,7 +23,7 @@ db_metadata = {
 
 
 datetime_format = '%Y-%m-%d %H:%M:%S.%f'
-
+dir_logging = 'logging'
 dir_img = 'img'
 boxplot_png_filename = 'outlier_boxplot.png'
 
@@ -77,6 +77,11 @@ events_targeting_deals = [
     'rating',
     'visit_rating_page'
 ]
+
+required_sample_amount = 50
+target_sample_amount = 100
+flag_heavy_vectors = True
+dataset_split = (0.7, 0.2, 0.1)
 
 learning_rate = 0.001
 alpha = 0.7

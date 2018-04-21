@@ -1,48 +1,138 @@
 import tensorflow as tf
-from tensorflow.python.ops import rnn, rnn_cell
+from tensorflow.contrib import rnn
 import numpy as np
 import config as cfg
 from os import path, getcwd, listdir
 import pickle
 from sklearn.metrics import roc_auc_score, f1_score
-import math
+from random import shuffle
+from collections import OrderedDict
+from imblearn.over_sampling import SMOTE
+import time
+import datetime
 
 
-def load_vector_file(filepath: str) -> ([[float or int]], [float or int]):
+def load_shuffled_train_valid_test(
+        filepaths: [str],
+        ratios: tuple,
+        required_sample_amount: int,
+        flag_oversample: bool,
+        flag_undersample: bool,
+        sampling_target_amount: int):
+    all_user_vectors = []
 
-    with open(path.join(getcwd(), cfg.dir_vectors, filepath), 'rb') as vector_file:
+    partners_list = []
+    partner_numerosities = {}
 
-        vector_tuples = pickle.load(vector_file)
+    for filepath in filepaths:
+        with open(path.join(getcwd(), cfg.dir_sorted_partner_vectors_input_with_partners, filepath),
+                  'rb') as vector_file:
 
-    x = np.array([np.array(vector_tuple[0]) for vector_tuple in vector_tuples])
-    y = np.array([vector_tuple[1] for vector_tuple in vector_tuples])
+            current_file_vectors = pickle.load(vector_file)
 
-    return x, y
+            if len(current_file_vectors) >= required_sample_amount:
+
+                if flag_undersample:
+                    # undersample
+                    if len(current_file_vectors) > sampling_target_amount:
+                        current_file_vectors = current_file_vectors[:sampling_target_amount]
+
+                all_user_vectors += current_file_vectors
+
+            partner_id = int(filepath.split('_')[-1])
+            partners_list.append(partner_id)
+            partner_vector_amount = len(current_file_vectors)
+            partner_numerosities[partner_id] = partner_vector_amount
+
+    # SMOTE
+    if flag_oversample:
+        all_vector_inputs = [vector_pair[0] for vector_pair in all_user_vectors]
+        all_vector_targets = [vector_pair[1] for vector_pair in all_user_vectors]
+
+        inputs_res, targets_res = SMOTE(kind='svm').fit_sample(all_vector_inputs, all_vector_targets)
+
+        all_user_vectors = [(inputs_res[index], targets_res[index]) for index in range(len(inputs_res))]
+
+    # SMOTE
+
+    max_vector_amount = max(partner_numerosities.values())
+    partners_list.sort()
+
+    class_weights = []
+
+    for partner_id in partners_list:
+
+        current_class_weight = (1 - partner_numerosities[partner_id] / (max_vector_amount * 2)) ** 4
+        class_weights.append(
+            current_class_weight
+        )
+        if partner_numerosities[partner_id] > 100:
+            print('Partner vectors amount: {}'.format(partner_numerosities[partner_id]))
+            print('Max vector amount*2: {}'.format(max_vector_amount * 2))
+            print('Result class weight: {}\n'.format(current_class_weight))
+
+    print(class_weights)
+
+    shuffle(all_user_vectors)
+
+    train_ratio, valid_ratio, test_ratio = ratios
+    n_vectors = len(all_user_vectors)
+
+    train = all_user_vectors[:int(n_vectors * train_ratio)]
+    valid = all_user_vectors[int(n_vectors * train_ratio):int(n_vectors * (train_ratio + valid_ratio))]
+    test = all_user_vectors[int(n_vectors * (train_ratio + valid_ratio)):]
+
+    print('Train vectors: {}'.format(len(train)))
+    print('Valid vectors: {}'.format(len(valid)))
+    print('Test  vectors: {}'.format(len(test)))
+
+    x_train = np.array([np.array(vector[0]) for vector in train])
+    y_train = np.array([np.array(vector[1]) for vector in train])
+
+    x_valid = np.array([np.array(vector[0]) for vector in valid])
+    y_valid = np.array([np.array(vector[1]) for vector in valid])
+
+    x_test = np.array([np.array(vector[0]) for vector in test])
+    y_test = np.array([np.array(vector[1]) for vector in test])
+
+    return x_train, y_train, x_valid, y_valid, x_test, y_test, class_weights
 
 
-def load_multiple_vector_files(filepaths: [str]):
-    """
-    Loads multiple vector files and appends vectors together.
-    Good idea for test and valid set.
-    Not a good idea for train, too much data in RAM, do in batches.
-    :param filepaths:
-    list of file paths to load vectors from
-    :return:
-    """
+def show_dataset_class_distribution(filepaths: [str]):
+    reverse_partners_count = {}
 
-    inputs, targets = load_vector_file(filepaths[0])
+    input_batch_filepaths = sorted(
+        [path.join(getcwd(), cfg.dir_sorted_partner_vectors_input_with_partners, filename)
+         for filename in listdir(path.join(getcwd(), cfg.dir_sorted_partner_vectors_input_with_partners))]
+    )
 
-    for filepath in filepaths[1:]:
+    for filepath in filepaths:
+        with open(path.join(getcwd(), cfg.dir_partners_grouped_vectors, filepath), 'rb') as vector_file:
 
-        x, y = load_vector_file(filepath)
+            partner_id = filepath.split('_')[-1]
+            partner_vector_count = len(pickle.load(vector_file))
 
-        inputs = np.concatenate([inputs, x])
-        targets = np.concatenate([targets, y])
+            try:
+                reverse_partners_count[partner_vector_count].append(partner_id)
+            except KeyError:
+                reverse_partners_count[partner_vector_count] = [partner_id]
 
-    return inputs, targets
+    # ordering dict by vector amount
+    ordered = OrderedDict()
+
+    while len(reverse_partners_count.keys()):
+        max_vectors = max(reverse_partners_count.keys())
+        max_partners = reverse_partners_count[max_vectors]
+
+        ordered[max_vectors] = max_partners
+
+        reverse_partners_count.pop(max_vectors, None)
+
+    for vector_count, partner_ids in ordered.items():
+        print('Samples: {}'.format(vector_count).ljust(15, ' ') + 'Partners amount: {}'.format(len(partner_ids)))
 
 
-def get_input_target_lengths(check_print: bool=False) -> (int, int, int):
+def get_input_target_lengths(check_print: bool = False) -> (int, int, int):
     """
     Get vector shapes
     :param check_print:
@@ -51,19 +141,23 @@ def get_input_target_lengths(check_print: bool=False) -> (int, int, int):
     size of input vector, number of steps, size of output vector
     """
 
-    with open(path.join(getcwd(), cfg.dir_vectors, cfg.vectors_baseline_filename + '3'), 'rb') as vector_file:
+    with open(path.join(
+            getcwd(),
+            cfg.dir_sorted_partner_vectors_input_with_partners,
+            cfg.sorted_heavy_partner_vectors_baseline_filename + '13295'
+    ), 'rb') as vector_file:
 
         all_users_vectors = pickle.load(vector_file)
 
     sample_user_tuple = all_users_vectors[0]
 
     if check_print:
-        print(f'Amount of sample users:\n{len(all_users_vectors)}')
-        print(f'Amount of input time events:\n{len(all_users_vectors[0][0])}\n\n')
+        print('Amount of sample users:\n{}'.format(len(all_users_vectors)))
+        print('Amount of input time events:\n{}\n\n'.format(len(all_users_vectors[0][0])))
 
         for pair in all_users_vectors:
-            print(f'Length of single input vector: {len(pair[0][0])}')
-            print(f'Length of single target vector:{len(pair[1])}')
+            print('Length of single input vector: {}'.format(len(pair[0][0])))
+            print('Length of single target vector:{}'.format(len(pair[1])))
 
         print('Sample user tuple: ')
         print('Inputs:')
@@ -71,178 +165,262 @@ def get_input_target_lengths(check_print: bool=False) -> (int, int, int):
         print('Target:')
         print(sample_user_tuple[1])
         print('Ones in sample target:')
-        print(f'{sum(sample_user_tuple[1])}')
+        print('{}'.format(sum(sample_user_tuple[1])))
 
     return len(sample_user_tuple[0][0]), len(all_users_vectors[0][0]), len(sample_user_tuple[1])
 
 
-def weight_variable(shape):
-    initial = tf.truncated_normal(shape, stddev=0.1)
-    return tf.Variable(initial)
+def RNN_1(
+        x: tf.placeholder,
+        n_input: int,
+        n_steps: int,
+        n_classes: int,
+        n_hidden_cells: int,
+        dropout_chance: float,
+        model_type: str,
+        train: bool):
+
+    def get_weights(layer_from_size: int, layer_to_size: int):
+
+        return tf.Variable(tf.random_normal([layer_from_size, layer_to_size]))
+
+    def get_biases(layer_to_size: int):
+
+        return tf.Variable(tf.random_normal([layer_to_size]))
+
+    x = tf.unstack(x, n_steps, 1)
+
+    if model_type == 'rnn':
+        cell_constructor = rnn.BasicRNNCell
+    elif model_type == 'gru':
+        cell_constructor = rnn.GRUCell
+    elif model_type == 'lstm':
+        cell_constructor = rnn.BasicLSTMCell
+    elif model_type == 'nas':
+        cell_constructor = rnn.NASCell
+    else:
+        raise Exception("model type not supported: {}".format(model_type))
+
+    cell = cell_constructor(n_hidden_cells, activation=tf.nn.relu)
+    if train:
+        cell = tf.nn.rnn_cell.DropoutWrapper(cell, output_keep_prob=1 - dropout_chance)
+
+    outputs, states = rnn.static_rnn(cell, x, dtype=tf.float32)
+
+    weights_out = get_weights(n_hidden_cells, n_classes)
+    biases_out = get_biases(n_classes)
+
+    output_layer = tf.matmul(outputs[-1], weights_out) + biases_out
+
+    return output_layer
 
 
-def bias_variable(shape):
-    initial = tf.constant(0.0, shape=shape)
-    return tf.Variable(initial)
+def load_dataset():
 
+    dataset_split_ratio = cfg.dataset_split
+    flag_oversample = False
+    flag_undersample = True
+    sampling_target_amount = 100
+    required_sample_amount = 50
 
-def lstm(x, weight, bias, n_steps, n_classes):
-
-    print(cfg.n_hidden_layers * [cfg.n_hidden_cells_in_layer])
-
-    rnn_layers = [
-        tf.nn.rnn_cell.LSTMCell(size, state_is_tuple=True)
-        for size in cfg.n_hidden_layers * [cfg.n_hidden_cells_in_layer]
-    ]
-
-    multi_rnn_cell = tf.nn.rnn_cell.MultiRNNCell(rnn_layers)
-
-    output, state = tf.nn.dynamic_rnn(multi_rnn_cell, x, dtype=tf.float32)
-
-    # turn output around axis to be 1-dimensional
-    output_flattened = tf.reshape(output, [-1, cfg.n_hidden_cells_in_layer])
-    output_logits = tf.add(tf.matmul(output_flattened, weight), bias)
-
-    output_all = tf.nn.sigmoid(output_logits)
-    output_reshaped = tf.reshape(output_all, [-1, n_steps, n_classes])
-
-    # ??? switch batch size with sequence size. ???
-    # then gather last time step values
-    output_last = tf.gather(tf.transpose(output_reshaped, [1, 0, 2]), n_steps - 1)
-
-    # output = tf.transpose(output, [1, 0, 2])
-    # last = tf.gather(output, int(output.get_shape()[0]) - 1)
-    # output_last = tf.nn.sigmoid(tf.matmul(last, weight) + bias)
-
-    return output_last, output_all
-
-
-def run_thesis():
-
-    # TODO: LIMITING AMOUNT OF FILES
     input_batch_filepaths = sorted(
-        [path.join(getcwd(), cfg.dir_vectors, filename)
-         for filename in listdir(path.join(getcwd(), cfg.dir_vectors))
-         if len(filename.split('_')[2]) < 3
-         ]
+        [path.join(getcwd(), cfg.dir_sorted_partner_vectors_input_with_partners, filename)
+         for filename in listdir(path.join(getcwd(), cfg.dir_sorted_partner_vectors_input_with_partners))]
     )
 
-    # # cutting the last incomplete file(not full wrap amount)
-    # input_batch_filepaths = input_batch_filepaths[:-1]
-    # print(f'Omitting {input_batch_filepaths[-1]}')
+    print('Loading dataset into train, valid, test')
+    dataset_loading_start = time.time()
 
-    batch_amount = len(input_batch_filepaths)
+    x_train, y_train, x_valid, y_valid, x_test, y_test, class_weights = load_shuffled_train_valid_test(
+        filepaths=input_batch_filepaths,
+        ratios=dataset_split_ratio,
+        required_sample_amount=required_sample_amount,
+        flag_oversample=flag_oversample,
+        flag_undersample=flag_undersample,
+        sampling_target_amount=sampling_target_amount
+    )
 
-    train_amount = int(batch_amount * 0.7)
-    test_amount  = int(batch_amount * 0.2)
-    valid_amount = int(batch_amount * 0.1)
+    dataset_loading_end = time.time()
+    print('Loading finished in {}\n'.format(dataset_loading_end - dataset_loading_start))
 
-    train_filepaths = input_batch_filepaths[:train_amount]
-    test_filepaths = input_batch_filepaths[train_amount:train_amount+test_amount]
-    valid_filepaths = input_batch_filepaths[train_amount+test_amount:]
+    return x_train, y_train, x_valid, y_valid, x_test, y_test
 
-    print(f'Training:   {cfg.pickle_wrap_amount * len(train_filepaths)} vectors')
-    print(f'Testing:    {cfg.pickle_wrap_amount * len(test_filepaths)} vectors')
-    print(f'Validation: {cfg.pickle_wrap_amount * len(valid_filepaths)} vectors')
 
-    # NOTE: FULL DATASET
-    # x_test, y_test = load_multiple_vector_files(test_filepaths)
-    # x_valid, y_valid = load_multiple_vector_files(valid_filepaths)
+def run_training(
+        *,
+        dataset: tuple,
+        n_hidden_cells: int,
+        learning_rate: float,
+        alpha: float,
+        min_epoch_amount: int,
+        batch_size: int,
+        dropout_chance: float,
+        model_type: str,
+        optimizer_type: str,
+        use_class_weights: bool,
+        train: bool):
 
-    x_test, y_test = load_multiple_vector_files(test_filepaths[0:5])
-    x_valid, y_valid = load_multiple_vector_files(valid_filepaths[0:5])
+    logtime_begin = str(datetime.datetime.now())
 
-    print(f'Shape X_test: {x_test.shape}')
-    print(f'Shape Y_test: {y_test.shape}')
+    log = 'Logging start: {}\n'.format(logtime_begin)
 
-    print(f'Shape X_valid: {x_valid.shape}')
-    print(f'Shape Y_valid: {y_valid.shape}')
+    log += 'Dataset hyperparameters:'
+    log += 'Using heave vectors:  {}'.format(cfg.flag_heavy_vectors)
+    log += '\tDataset split:'
+    log += '\t\tTrain: {}'.format(cfg.dataset_split[0])
+    log += '\t\tTest:  {}'.format(cfg.dataset_split[1])
+    log += '\t\tValid: {}'.format(cfg.dataset_split[2])
+    log += '\tUndersample to:     {}'.format(cfg.target_sample_amount)
+    log += '\tMin class samples:  {}'.format(cfg.target_sample_amount)
 
-    # print(y_test.shape)
-    # for test in y_test:
-    #     positions = [index for index, value in enumerate(test) if value]
-    #     print(f'{sum(test)}: {len(positions)}')
-    #
-    # print(sum([sum(test_sample) for test_sample in y_test]))
-    # return
+    log += 'Network hyperparameters:'
+    log += '\tCell:               {}'.format(model_type)
+    log += '\tOptimizer:          {}'.format(optimizer_type)
+    log += '\tWeights:            {}'.format(use_class_weights)
+    log += '\tLearning rate:      {}'.format(learning_rate)
+    log += '\tBatch size:         {}'.format(batch_size)
+    log += '\tDropout:            {}'.format(dropout_chance)
 
-    # classes = {}
-    # for index in range(7172):
-    #     classes[index] = 0
-    #
-    # for test in y_test:
-    #     for index, value in enumerate(test):
-    #         if value:
-    #             classes[index] += 1
-    #
-    # for key, value in classes.items():
-    #     print(f'{key}: {value}')
-    #
-    # print(f'Sum of all partner findings: {sum(value for value in classes.values())}')
-    #
-    # return
+    x_train, y_train, x_valid, y_valid, x_test, y_test, class_weights = dataset
 
     n_input, n_steps, n_classes = get_input_target_lengths(check_print=False)
 
-    print(n_steps)
-    print(n_input)
-    print(n_classes)
-
     x = tf.placeholder("float", [None, n_steps, n_input])
     y = tf.placeholder("float", [None, n_classes])
-    y_steps = tf.placeholder("float", [None, n_classes])
 
-    weight = weight_variable([cfg.n_hidden_cells_in_layer, n_classes])
-    bias = bias_variable([n_classes])
+    logits = RNN_1(
+        x=x,
+        n_input=n_input,
+        n_steps=n_steps,
+        n_classes=n_classes,
+        n_hidden_cells=n_hidden_cells,
+        dropout_chance=dropout_chance,
+        model_type=model_type,
+        train=train
+    )
 
-    y_last, y_all = lstm(x, weight, bias, n_steps, n_classes)
+    predictions = tf.nn.softmax(logits)
 
-    #all_steps_cost=tf.reduce_mean(-tf.reduce_mean((y_steps * tf.log(y_all))+(1 - y_steps) * tf.log(1 - y_all),reduction_indices=1))
-    all_steps_cost = -tf.reduce_mean((y_steps * tf.log(y_all)) + (1 - y_steps) * tf.log(1 - y_all))
-    last_step_cost = -tf.reduce_mean((y * tf.log(y_last)) + ((1 - y) * tf.log(1 - y_last)))
-    loss_function = (cfg.alpha * all_steps_cost) + ((1 - cfg.alpha) * last_step_cost)
+    class_weights = tf.constant(class_weights)
+    class_weights = tf.reshape(class_weights, [1, n_classes])
+    weighted_logits = tf.multiply(logits, class_weights)
 
-    optimizer = tf.train.AdamOptimizer(learning_rate=cfg.learning_rate).minimize(loss_function)
+    if use_class_weights:
+        loss_function = tf.reduce_mean(
+            tf.nn.softmax_cross_entropy_with_logits(
+                logits=weighted_logits,
+                labels=y
+            )
+        )
+    else:
+        loss_function = tf.reduce_mean(
+            tf.nn.softmax_cross_entropy_with_logits(
+                logits=logits,
+                labels=y
+            )
+        )
+
+    if optimizer_type == 'adam':
+        optimizer_constructor = tf.train.AdamOptimizer
+    elif optimizer_type == 'sgd':
+        optimizer_constructor = tf.train.GradientDescentOptimizer
+    elif optimizer_type == 'rmsp':
+        optimizer_constructor = tf.train.RMSPropOptimizer
+    elif optimizer_type == 'adg':
+        optimizer_constructor = tf.train.AdagradOptimizer
+    else:
+        raise ValueError('Value {} is not a valid string for declaring optimizer type'.format(optimizer_type))
+
+    optimizer = optimizer_constructor(learning_rate=learning_rate)
+    train_op = optimizer.minimize(loss_function)
+
+    correct_pred = tf.equal(tf.argmax(predictions, 1), tf.argmax(y, 1))
+    accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+
+    init = tf.global_variables_initializer()
 
     with tf.Session() as session:
 
-        tf.global_variables_initializer().run()
+        session.run(init)
 
-        for epoch in range(cfg.epoch_amount):
-            print(f'\nEpoch number {epoch+1}\n')
-            for index, batch_filepath in enumerate(train_filepaths[:1]):
+        epoch = 0
+        epoch_valid_accuracies = []
+        stop_training = False
 
-                print(f'Batch number {index+1}')
+        while (not stop_training) or (epoch < min_epoch_amount):
 
-                x_batch, y_batch = load_vector_file(batch_filepath)
-                batch_y_steps = np.tile(y_batch, ((x_batch.shape[1]), 1))
+            epoch += 1
 
-                _, c = session.run(
-                    [optimizer, loss_function],
+            log += '\nEpoch number {}\n'.format(epoch)
+
+            batch_train_accuracies = []
+
+            x_train_shuffled = []
+            y_train_shuffled = []
+
+            shuffled_tuples = list(zip(x_train, y_train))
+            shuffle(shuffled_tuples)
+
+            [x_train_shuffled.append(shuffled_pair[0]) for shuffled_pair in shuffled_tuples]
+            [y_train_shuffled.append(shuffled_pair[1]) for shuffled_pair in shuffled_tuples]
+
+            for index in range(0, len(x_train_shuffled), batch_size):
+                x_batch_train = x_train_shuffled[index:index + batch_size]
+                y_batch_train = y_train_shuffled[index:index + batch_size]
+
+                session.run(train_op, feed_dict={x: x_batch_train, y: y_batch_train})
+
+                loss, batch_accuracy = session.run(
+                    [loss_function, accuracy],
                     feed_dict={
-                        x: x_batch,
-                        y: y_batch,
-                        y_steps: batch_y_steps
+                        x: x_batch_train,
+                        y: y_batch_train
                     }
                 )
 
-            print('\nTesting after epoch: ')
+                batch_train_accuracies.append(batch_accuracy)
 
-            y_predictions = session.run(y_last, feed_dict={x: x_batch})
+            log += '\nValidating after epoch: '
 
-            rounded_predictions = []
-            for prediction in y_predictions:
-                rounded_predictions.append(
-                    [int(np.round(target)) for target in prediction]
+            batch_valid_accuracies = []
+
+            for index in range(0, len(x_valid), batch_size):
+                x_batch_valid = x_valid[index:index + batch_size]
+                y_batch_valid = y_valid[index:index + batch_size]
+
+                batch_valid_accuracies.append(
+                    session.run(accuracy, feed_dict={x: x_batch_valid, y: y_batch_valid})
                 )
 
-            rounded_predictions = np.array(rounded_predictions)
+            epoch_train_accuracy = 100 * np.mean(batch_train_accuracies)
+            epoch_valid_accuracy = 100 * np.mean(batch_valid_accuracies)
 
-            for index in range(50):
-                print(f'{sum(y_test[index])} : {sum(rounded_predictions[index])}')
+            log += 'Loss after epoch:    {0:.4f}\n'.format(loss)
+            log += 'Average train batch accuracy: {0:.4f}%\n'.format(epoch_train_accuracy)
+            log += 'Validation accuracy: {0:.4f}%\n\n'.format(epoch_valid_accuracy)
 
-            print("F1 Score: ", f1_score(y_batch, rounded_predictions, average='samples'))
+            if (np.mean(epoch_valid_accuracies[-10:]) - epoch_valid_accuracy > 0.2) and (epoch >= min_epoch_amount):
+                log += 'Stopping training because:\n'
+                log += '\tAverage valid accuracy(current epoch): {0:.4f}%\n'.format(epoch_valid_accuracy)
+                log += '\tAverage valid accuracy(last N epochs): {0:.4f}%\n'.format(np.mean(epoch_valid_accuracies[-10:]))
 
-        print('Validating: ')
-        y_predictions = session.run(y_last, feed_dict={x: x_valid})
-        print("F1 Score: ", f1_score(y_valid, y_predictions, average='samples'))
+                stop_training = True
+
+            epoch_valid_accuracies.append(epoch_valid_accuracy)
+
+        log += '\n\nFinal testing after all epochs: '
+
+        batch_test_accuracies = []
+        for index in range(0, len(x_test), batch_size):
+            x_batch_test = x_test[index:index + batch_size]
+            y_batch_test = y_test[index:index + batch_size]
+
+            batch_test_accuracies.append(
+                session.run(accuracy, feed_dict={x: x_batch_test, y: y_batch_test})
+            )
+
+        log += 'Test accuracy: {0:.4f}%\n'.format(100 * np.mean(batch_test_accuracies))
+
+        with open(path.join(getcwd(), cfg.dir_logging, logtime_begin), 'w') as logfile:
+
+            logfile.write(log)
