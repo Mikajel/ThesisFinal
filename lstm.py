@@ -265,13 +265,13 @@ def run_training(
     log = 'Logging start: {}\n\n'.format(logtime_begin)
 
     log += 'Dataset hyperparameters:\n'
-    log += 'Using heave vectors:  {}\n'.format(cfg.flag_heavy_vectors)
+    log += 'Using heavy vectors:  {}\n'.format(cfg.flag_heavy_vectors)
     log += '\tDataset split:\n'
     log += '\t\tTrain: {}\n'.format(cfg.dataset_split[0])
     log += '\t\tTest:  {}\n'.format(cfg.dataset_split[1])
     log += '\t\tValid: {}\n'.format(cfg.dataset_split[2])
     log += '\tUndersample to:     {}\n'.format(cfg.target_sample_amount)
-    log += '\tMin class samples:  {}\n\n'.format(cfg.target_sample_amount)
+    log += '\tMin class samples:  {}\n\n'.format(cfg.required_sample_amount)
 
     log += 'Network hyperparameters:\n'
     log += '\tCell:               {}\n'.format(model_type)

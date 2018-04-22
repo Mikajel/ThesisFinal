@@ -34,7 +34,7 @@
         <entry file="file://$PROJECT_DIR$/run.ipynb">
           <provider selected="true" editor-type-id="ipnb-editor">
             <state>
-              <selected id="3" />
+              <selected id="1" />
             </state>
           </provider>
         </entry>
@@ -42,8 +42,8 @@
       <file leaf-file-name="lstm.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/lstm.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="698">
-              <caret line="426" column="16" lean-forward="true" selection-start-line="426" selection-start-column="16" selection-end-line="426" selection-end-column="16" />
+            <state relative-caret-position="205">
+              <caret line="273" column="75" lean-forward="false" selection-start-line="273" selection-start-column="75" selection-end-line="273" selection-end-column="75" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
               </folding>
@@ -385,7 +385,14 @@
       <option name="project" value="LOCAL" />
       <updated>1524345731570</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Added sorting for logfiles into subfolders by date for easier lookup.">
+      <created>1524421696219</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1524421696219</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TodoView" selected-index="4">
@@ -460,7 +467,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Merged both developements from my machine(preprocessing) and server(training) to one file on my machine." />
     <MESSAGE value="Automatized running, separated functionality into .py files from notebooks." />
-    <option name="LAST_COMMIT_MESSAGE" value="Automatized running, separated functionality into .py files from notebooks." />
+    <MESSAGE value="Added sorting for logfiles into subfolders by date for easier lookup." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added sorting for logfiles into subfolders by date for easier lookup." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1122,14 +1130,14 @@
     <entry file="file://$PROJECT_DIR$/run.ipynb">
       <provider selected="true" editor-type-id="ipnb-editor">
         <state>
-          <selected id="3" />
+          <selected id="1" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lstm.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="698">
-          <caret line="426" column="16" lean-forward="true" selection-start-line="426" selection-start-column="16" selection-end-line="426" selection-end-column="16" />
+        <state relative-caret-position="205">
+          <caret line="273" column="75" lean-forward="false" selection-start-line="273" selection-start-column="75" selection-end-line="273" selection-end-column="75" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
           </folding>
