@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.contrib import rnn
 import numpy as np
 import config as cfg
-from os import path, getcwd, listdir
+from os import path, getcwd, listdir, mkdir
 import pickle
 from sklearn.metrics import roc_auc_score, f1_score
 from random import shuffle
@@ -243,7 +243,7 @@ def load_dataset():
     dataset_loading_end = time.time()
     print('Loading finished in {}\n'.format(dataset_loading_end - dataset_loading_start))
 
-    return x_train, y_train, x_valid, y_valid, x_test, y_test
+    return x_train, y_train, x_valid, y_valid, x_test, y_test, class_weights
 
 
 def run_training(
@@ -262,24 +262,24 @@ def run_training(
 
     logtime_begin = str(datetime.datetime.now())
 
-    log = 'Logging start: {}\n'.format(logtime_begin)
+    log = 'Logging start: {}\n\n'.format(logtime_begin)
 
-    log += 'Dataset hyperparameters:'
-    log += 'Using heave vectors:  {}'.format(cfg.flag_heavy_vectors)
-    log += '\tDataset split:'
-    log += '\t\tTrain: {}'.format(cfg.dataset_split[0])
-    log += '\t\tTest:  {}'.format(cfg.dataset_split[1])
-    log += '\t\tValid: {}'.format(cfg.dataset_split[2])
-    log += '\tUndersample to:     {}'.format(cfg.target_sample_amount)
-    log += '\tMin class samples:  {}'.format(cfg.target_sample_amount)
+    log += 'Dataset hyperparameters:\n'
+    log += 'Using heave vectors:  {}\n'.format(cfg.flag_heavy_vectors)
+    log += '\tDataset split:\n'
+    log += '\t\tTrain: {}\n'.format(cfg.dataset_split[0])
+    log += '\t\tTest:  {}\n'.format(cfg.dataset_split[1])
+    log += '\t\tValid: {}\n'.format(cfg.dataset_split[2])
+    log += '\tUndersample to:     {}\n'.format(cfg.target_sample_amount)
+    log += '\tMin class samples:  {}\n\n'.format(cfg.target_sample_amount)
 
-    log += 'Network hyperparameters:'
-    log += '\tCell:               {}'.format(model_type)
-    log += '\tOptimizer:          {}'.format(optimizer_type)
-    log += '\tWeights:            {}'.format(use_class_weights)
-    log += '\tLearning rate:      {}'.format(learning_rate)
-    log += '\tBatch size:         {}'.format(batch_size)
-    log += '\tDropout:            {}'.format(dropout_chance)
+    log += 'Network hyperparameters:\n'
+    log += '\tCell:               {}\n'.format(model_type)
+    log += '\tOptimizer:          {}\n'.format(optimizer_type)
+    log += '\tWeights:            {}\n'.format(use_class_weights)
+    log += '\tLearning rate:      {}\n'.format(learning_rate)
+    log += '\tBatch size:         {}\n'.format(batch_size)
+    log += '\tDropout:            {}\n'.format(dropout_chance)
 
     x_train, y_train, x_valid, y_valid, x_test, y_test, class_weights = dataset
 
@@ -380,7 +380,7 @@ def run_training(
 
                 batch_train_accuracies.append(batch_accuracy)
 
-            log += '\nValidating after epoch: '
+            log += '\nValidating after epoch: \n'
 
             batch_valid_accuracies = []
 
@@ -408,7 +408,7 @@ def run_training(
 
             epoch_valid_accuracies.append(epoch_valid_accuracy)
 
-        log += '\n\nFinal testing after all epochs: '
+        log += '\n\nFinal testing after all epochs: \n'
 
         batch_test_accuracies = []
         for index in range(0, len(x_test), batch_size):
@@ -421,6 +421,14 @@ def run_training(
 
         log += 'Test accuracy: {0:.4f}%\n'.format(100 * np.mean(batch_test_accuracies))
 
-        with open(path.join(getcwd(), cfg.dir_logging, logtime_begin), 'w') as logfile:
+        dir_name = str(logtime_begin).split(' ')[0]
+
+        if path.exists(path.join(getcwd(), cfg.dir_logging, dir_name)):
+            pass
+
+        else:
+            mkdir(path.join(getcwd(), cfg.dir_logging, dir_name))
+
+        with open(path.join(getcwd(), cfg.dir_logging, dir_name, logtime_begin), 'w') as logfile:
 
             logfile.write(log)
