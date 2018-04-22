@@ -1,0 +1,52 @@
+\newpage
+\chapter{Dizajn} 
+
+\section{Návrh}
+\label{design}
+
+Navrhli sme doprednú neurónovú sieť na klasifikáciu používateľských sedení pre YooChoose dataset. Na vstupe do nej vchádzajú predspracované dáta z používateľských aktivít a na výstupe je určená pravdeposobnosť pre to, do ktorej skupiny patrí.
+
+\subsection{Predspracovanie}
+
+Na obrázku ~\ref{fig:preprocessing} je znázornený proces predspracovania dát zo zdrojových súborov na vektory. Záznamy o nákupoch sú využité na generovanie tried pre tréningovú množinu a množinu správnych odpovedí vo validácií a v teste. Záznamy o klikoch generujú vstupné vektory ktoré sú klasifikované.
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[scale=0.50]{preprocessing}\end{center}
+	\caption[preprocessing]{Na diagrame je znázornené predspracovanie dát}
+	\label{fig:preprocessing}
+\end{figure}
+
+\subsubsection{Vyvažovanie datasetu}
+Pre korektné učenie klasifikačných úloh je nutné poskytnúť neurónovej sieti v datasete vyváženú reprezentáciu jednotlivých tried. Prvotné pokusy ukázali, že pri nevyváženom rozdelení datasetu(v našom prípade 1:9 pomer nákupných sedení a nenákupných sedení) sa neurónová sieť môže naučiť favorizovať vysoko zastúpenú triedu. \newline
+Pri našom pomere je štatisticky výhodnejšie určiť, že sedenie nie je nákupné a dosiahnuť v priemere 80-90\% úspešnosť. Takáto informácia však nemá nijakú aplikáciu v praxi a preto preferujeme aj nižšiu úspešnosť so schopnosťou predpovedať obe triedy.\newline
+
+Pre odstraňovanie nerovností v klasifikácií existujú dva prístupy:
+\begin{my_itemize}
+	\myitem{oversampling} - generovanie opakovaných dát z existujúcich pre triedy, ktorých zastúpenie je nedostatočné
+	\myitem{undersampling} - orezávanie tried s prebytočným počtom vzoriek
+\end{my_itemize}
+
+Pre naše účely si vyberáme oversampling. Predspracovanie datasetu je výpočtovo náročná úloha a rozdiel medzi oversamplingom a undersamplingom v našom datasete predstavuje 20-násobok potrebnej dátovej vzorky.
+
+
+\subsubsection{Normalizácia}
+Interpretácia dát pre neurónovú sieť prechádza normalizáciou. Signál pre aktivačné funkcie je ľahšie interpretovateľný, pokiaľ sa nachádza v normálovom rozložení $<-1,1>$ alebo $<0,1>$ Preto každý parameter prechádza normalizáciou podľa svojho rozsahu.
+
+\subsubsection{Architektúra siete}
+Testujeme architektúru doprednej siete s jednou skrytou vrstvou podľa obr.~\ref{fig:nn}. Skrytá vrstva obsahuje ReLU aktivačné funkcie. Na vstupe sa nachádza 9 neurónov prijímajúcich normalizované hodnoty vo vstupnom vektore podľa obr.~\ref{fig:preprocessing}. Na výstupe sa nachádzajú 2 výstupné neuróny na ktoré je aplikovaná softmax aktivácia pre škálovanie súčtu výstupných hodnôt pre jednotlivé triedy na 1. Na výstupe tak máme percentuálnu šancu pre danú triedu. \newline
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[scale=0.50]{NN}\end{center}
+	\caption[NN]{Graf znázorňuje architektúru siete}
+	\label{fig:nn}
+\end{figure}
+
+
+\section{Implementácia}
+\label{implementation}
+
+Projekt je realizovaný v jazyku \textbf{Python}, ktorý je ideálny pre účely data-miningu ideálnou voľbou. Poskytuje rozsiahle balíky určené pre prácu vývojárov a dátovo zameraných výskumníkov ako napríklad \textit{numpy}, \textit{pandas} alebo \textit{matplotlib}. \newline
+Python bol voľbou aj kvôli frameworku \textbf{Tensorflow} od spoločnosti Google. Tensorflow obsahuje rozsiahlu podporu a nástroje pre implementáciu strojového učenia, špeciálne neurónových sietí.\newline
+Pre efektivitu práce je v projekte využitý \textbf{Jupyter}. Poskytuje notebooky, v ktorých je možné upravovať a spúšťať Python skripty po jednotlivých častiach v bunkách, udržiava stav premenných a poskytuje pracovné rozhranie v prostredí internetového prehliadača. Uľahčuje tak prácu so serverom, na ktorom sú realizované výpočty.

@@ -1,0 +1,28 @@
+
+\chapter{Technická dokumentácia}
+\label{technicka_dokumentacia}
+%\section{Implementation}
+\section{Implementácia}
+
+Program je implementovaný v jazyku Python. Je upravený pre prácu s obomi verziami Python (2.X aj 3.X). Hlavný program je implementovaný v Python Jupyter Notebooku.
+
+\paragraph{Modul DataHandler}
+obsauje metódy určené na prácu s dátami. Nachádzajú sa tu metódy na:
+\begin{my_itemize}
+	\item{načítanie dát}
+	\item{oversample a undersample}
+	\item{časové údaje}
+	\item{výpisy}
+	\item{počítanie úspešnosti učenia}
+	\item{normalizácia}
+\end{my_itemize} 
+
+\paragraph{Modul ModelInput}
+obsahuje definície tried pre dátové objekty reprezentujúce dáta využívané v predspracovaní. Obsahuje tiež metódy, ktoré súvisia s predspracovaním dát, agregáciou a zmenou na vstupné vektory.
+
+Triedy:
+\begin{my_itemize}
+	\item{Session} - Inštancie tejto triedy predstavujú agregované dáta z klikov patriacich pod unikátnu používateľskú session.
+	\item{SessionObject} - Inštancie sú predspracovaním dát, obsahujú údaje, ktoré sú vkladané na vstup do neurónovej siete po zakódovaní na vstupné vektory.
+\end{my_itemize}
+

@@ -1,0 +1,21 @@
+
+\chapter{Používateľská dokumentácia}
+
+Pre spustenie programu je nutné mať:
+
+\begin{my_itemize}
+	\item{Python verzia 2.7 alebo 3.5}
+	\item{Jupyter notebooks}
+	\item{Zdrojové súbory programu}
+\end{my_itemize}
+
+Program je spustený nasledovnými krokmi:
+\begin{my_enumerate}
+	\item{Spustenie Jupyter notebooku} - pre spustenie je nutné zadať príkaz 'jupyter-notebook' v konzole. Po štarte Jupyter oznámi na akom porte pracuje. Štandardne sa snaží dostať na port 8888, pokiaľ nie je dostupný, hľadá najbližší voľný port v poradí.
+	\item{Otvorenie notebooku s projektom} - Jupyter poskytuje prehliadačové rozhranie pre prácu s notebookmi. Pre otvorenie rozhrania je nutné zadať 'localhost://portnumber' do adresy prehliadača. 'portnumber' reprezentuje číslo prideleného portu, teda štandardne 8888. Následne stačí otvoriť súbor notebooku v prehliadači súborového systému.
+	\item{Spustenie vykonatelného kódu} - Pre spustenie jednotlivých buniek stačí kliknúť na bunku a stlačiť Ctrl+Enter. Bunky sú usporiadané v poradí, v akom sa majú spúšťať. Bunky sú číslované podľa poradia spúšťania buniek. Bunka ktorá stále pracuje, má miesto čísla hviezdičku.
+	
+	Pre prepnutie datasetu na menší alebo väčší súbor stačí prepísať názov súboru v prvej bunke. Relatívne cesty sú nastavené tak, aby sa do nich nemuselo zasahovať. Dostupné súbory sú v zložke 'data'.
+	
+	Kód vypisuje informácie pod bunku, v ktorej aktuálne beží. Mnoho metód má definovaných parameter 'info', ktorého nastavenie na 'True' alebo 'False'  ovplyvňuje množstvo výpisu.
+\end{my_enumerate}

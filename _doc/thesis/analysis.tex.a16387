@@ -1,0 +1,341 @@
+\newpage
+
+
+\chapter{Problémová oblasť}
+\label{analyza_problemova_oblast}
+
+Problémovú oblasť v tejto práci predstavuje výber produktov a služieb v internetovom predaji, ktoré majú maximálny potenciál zaujať zákazníkov pri práci s predajným portálom. Na takéto vzťahy medzi produktami a zákazníkmi alebo produktami navzájom môže mať vplyv množstvo faktorov ako napríklad ročné obdobie, vek a pohlavie nakupujúceho, špeciálne zľavy.
+Táto problematika zahŕňa podproblémy, ktorým sa venujeme ako analýza nákupného košíka(Market basket analysis - ďalej ako MBA) alebo cross-selling.
+ \newline
+ 
+\section{Cross-selling}
+\label{cross_selling}
+Cross-selling reprezentuje generický názov pre snahu predať prídavné produkty existujúcemu zákazníkovi. V snahe neodradiť zákazníka nezaujímavými ponukami sa kladie dôraz na výber najrelevantnejších produktov, keďže je dôležité zobraziť zákazníkovi čo najmenej ponúk. Zahltenie zákazníka ponukami, ktoré pre neho nie sú relevantné totiž často vedie k nepríjemnému zážitku zákazníka a prejavuje sa ako na nákupe tak aj na šanci, že zákazník sa znovu rozhodne využiť konkrétny portál pre elektronický nákup v budúcnosti. Cross-selling je často charakterizovaný v zmysle ,,Ako predstavíme správny produkt správnemu zákazníkovi v správnom čase za pomoci správneho komunikačného kanálu pre zaistenie dlhodobého úspechu".
+
+\section{Analýza nákupného košíka}
+\label{market_basket_analysis}
+
+Populárna technika využívaná pre cross-selling sa nazýva MBA. Hlavná idea spočíva v tom, že produkty, ktoré si už zákazník vybral v aktuálnom nákupe obsahujú cenné informácie o smerovaní odporúčania pre zákazníka. MBA využíva tri základné metriky pre počítanie súvislostí medzi položkami nákupov vzhľadom na dostupné historické dáta. 
+
+\begin{my_itemize}
+	\item {Support}
+	\item {Confidence}
+	\item {Lift}
+\end{my_itemize}
+
+\section{Support}
+\label{support}
+Neobvyklé udalosti či položky často predstavujú informácie, ktoré nemajú dostatočný význam pre ich sledovanie. Support predstavuje spôsob, ako ich ignorovať. Pre konkrétny produkt/službu je sledovaný výskyt v dátach. Pokiaľ nedosahuje stanovenú úroveň, položka je ignorovaná ako nezaujímavá pre analýzu.
+
+Položky, ktoré sú takýmto spôsobom zredukované, sú následne analyzované podľa apriori algoritmu. \textbf{Apriori algoritmus} združuje často nakupované položky podľa ich spoločného výskytu v nákupoch. Algoritmus pracuje iteratívne - najprv vytvára dvojice, potom trojice, atď., až kým neexistujú skupiny, ktoré by dosahovali potrebné minimum spoločných výskytov nato, aby boli vyhodnotené ako skupina.
+
+\section{Confidence}
+\label{confidence}
+Confidence vyhodnocuje podmieňenú pravdepodobnosť výskytu jednej položky alebo skupiny položiek(RHS - right hand side) za predpokladu, že sa už v košíku nachádza iná položka alebo skupina(LHS - left hand side).
+
+$conf(LHS\to RHS) = P(RHS | LHS) = \frac{P(RHS \cap LHS)}{P(LHS)} = \frac{supp(LHS\cap RHS)}{supp(LHS)}$
+
+\section{Lift}
+\label{lift}
+Lift predstavuje mieru zlepšenia výskytu hodnotenej položky za predpokladu položky v košíku. Je to pomer pravdepodobností výskytu oboch položiek v pomere k pravdepodobnosti výskytu položky, ktorú sa chystáme odporučiť(RHS)
+
+$lift(LHS\to RHS) = \frac{P(RHS \cap LHS)}{P(RHS)} = \frac{conf(LHS\to RHS)}{supp(RHS)}$
+
+
+\section{Odporúčacie systémy}
+\label{odporucacie_systemy}
+
+Odporúčacie systémy(ang. recommenders) predstavujú skupinu softvérových nástrojov pre odporúčanie položiek používateľom. Ako najčastejšie aplikácie v súčasnosti vystupuje odporúčanie v online nakupovaní, hudbe alebo zdrojoch informácií ~\cite{ricci2011introduction}. Odporúčacie systémy sú obľúbenou témou výskumu kvôli svojmu potenciálu pri aplikácii v biznis sfére.
+
+Hlavnou úlohou odporúčacieho systému je poskytnúť odporúčania - zoradený zoznam položiek, kde nás zaujímajú položky s najvyšším hodnotením. Hodnotenie(angl. \textit{rating}) predstavuje relevantnosť alebo zaujímavosť, ktorú pre používateľa daná položka má. Ako jednoduchý príklad hodnotenia môžeme uviesť skóre alebo počet hviezdičiek, ktoré používateľ priradí filmu, reštaurácii alebo hotelu. Odporúčacie systémy sa snažia odhaliť charakteristické črty cieľového používateľa a vygenerovať zoznam, ktorý zodpovedá jeho potrebám alebo záujmom. 
+
+
+
+
+
+\section{Moderovanie úbytku zákazníkov}
+\label{analyza_moderovanie_ubytku}
+
+Vo vzťahu k úbytku zákazníkov definuje CRM dva základné prístupy, ktorými je možné moderovať úbytok~\cite{burez2007crm}.
+
+\subsection{Reaktívny prístup}
+\label{analyza_reaktivny_pristup}
+
+Motivácia zákazníka pre zotrvanie s pôvodným poskytovateľom služby nastáva, až keď sa zákazník explicitne rozhodne pre prechod ku konkurenčnému poskytovateľovi. V tomto okamihu začína poskytovateľ na svojho zákazníka apelovať výhodnými ponukami, zľavami alebo inými spôsobmi motivácie pre zotrvanie u poskytovateľa. Takýto prístup sa ukazuje ako ľahko zneužiteľný ostatnými zákazníkmi, ktorí by inak nemali motiváciu pre prechod ku konkurencii. Predikcia úbytku zákazníkov v tomto prístupe nemá nijakú významnú úlohu.
+
+\subsection{Proaktívny prístup}
+\label{analyza_proaktivny_pristup}
+
+Pri úspešnej predikcii záujmu zákazníka o prechod ku konkurenčnému poskytovateľovi je možné efektívne jeho zámer smerovať pozitívnou motiváciou. Tento prístup však predpokladá vysokú úspešnosť predikčných metód. Pri nesprávnej identifikácii zákazníckeho správania je totiž nielen možné nezabrániť zákazníkom v presune ku konkurenčnému modelu, ale aj investícii finančných prostriedkov do skupiny zákazníkov, ktorá by naďalej generovala zisk aj bez významnejšej motivácie, resp. nevrátila by rozdielom v úbytku motivačné náklady, ktoré na ňu daný poskytovateľ vynaložil.
+
+\chapter{Dáta sprístupnené pre prácu}
+\label{analyza_data}
+
+Pre túto prácu boli sprístupnené dáta z používateľských prístupov na stránky e-shopu ponúkajúceho produkty a služby tretích strán za výhodnejších podmienok. Partneri(tretie strany) uverejňujú svoje akciové ponuky na portáli, ktorý im ponúka zákaznícky atraktívne prostredie. Zákazníci sú motivovaní navštevovať portál kvôli tomu, že portál uverejňuje iba akciové ponuky. Spoločnosti získavajú zákazníkov bez potreby nadmernej reklamnej kampane tým, že sa ich ponuka objaví na portáli s vysokou navštevovanosťou. Pre túto prácu disponujeme s niekoľkomesačnými používateľskými dátami.
+
+\section{Získavanie dát}
+\label{analyza_ziskavanie_dat}
+
+Pri všetkých používateľských prístupoch a aktivitách portál eviduje potenciálne dôležité dáta o týchto prístupoch pre možnosti dátovej analytiky a rozpoznávania trendov v správaní zákazníkov pre generovanie pridanej hodnoty pomocou prispôsobovania sa a individuálneho prístupu k zákazníkom. Takéto biznis stratégie vedú k maximalizovaniu zisku z predaja a zákazníckej spokojnosti pri práci s portálom. Dáta sú kategorizované a inak spracúvané do použiteľnej podoby. Výsledkom je dataset, ktorý slúži ako základ pre prácu odporúčacích systémov, ktoré táto práca skúma.
+
+\subsection{Používateľská session}
+\label{session}
+Snahou dátového zberu je schopnosť rozpoznať zákazníka, ktorý pristupuje k portálu. Jeden ucelený prístup k portálu sa nazýva \textbf{používateľská session}. Charakterizuje ju používateľ a jeho navigácia hierarchiou stránok portálu. Jedinečný používateľ je charakterizovaný unikátnym identifikátorom - \textbf{cookie}, ktorá je sprostredkovaná prehliadačom používateľa portálu. Problematika cookie spočíva v tom, že jeden používateľ môže vystupovať pod rôznymi cookie identifikátormi. Takáto situácia môže byť spôsobená prístupom z rôznych zariadení alebo cieleným používateľským zásahom do cookie - zmazaním, po ktorom používateľ odosiela cez prehliadač odlišnú cookie identifikáciu. Session ohraničujúca jeden prístup je rozdeľovaná pokiaľ používateľ presiahne časový rámec vyhradený pre jednu session, ktorý štandardne predstavuje 30 minút ~\cite{zhou2010research}.
+
+Medzi najdôležitejšie dostupné údaje z platobného portálu patria:
+
+\begin{my_itemize}
+	\item {Cookie}
+	\item {Používateľský účet}
+	\item {Čas aktivity}
+	\item {Prehliadaný obsah}
+	\item {Druh aktivity}
+	\item {Dodávateľ tretej strany}
+	\item {...}
+\end{my_itemize}
+
+Z uvedených údajov je možné roztriediť cookies a analyzovať jednotlivé prístupy, pohyb po portáli a položkách(produkty a služby) a nákupy.
+
+\chapter{Neurónové siete}
+\label{analyza_neuronove_siete}
+
+Koncept neurónových sietí vznikol v 40. rokoch minulého storočia inšpiráciou biologickými neurónovými sieťami v mozgu~\cite{mcculloch1943logical}.
+Cieľom bolo prekonať bariéru medzi tým, čo je pre ľudský mozog ľahko riešitelné ale ťažko formálne definovatelné matematickými pravidlami. Tieto problémy, ktoré riešime intuitívne, pri pokuse o formálnu špecifikáciu ukazujú, aké množstvo znalostí používame v každodennom živote. Ako vhodný príklad slúži vizuálne rozoznávanie objektov, ktoré je pre osobu samozrejmé, no až v posledných rokoch zaznamenávame prvé úspechy v tejto problematike pri použití NN~\cite{Goodfellow-et-al-2016-Book}.
+
+\section{Štruktúra}
+\label{analyza_struktura_nn}
+
+Podobne ako v mozgu, základ neurónovej siete tvoria neuróny a prepojenia medzi nimi. Neuróny sú organizované vo vrstvách, ktoré sa delia na 3 základné typy. 
+%\newline
+\noindent
+
+\textbf{Vstupná vrstva} - reprezentuje dáta, ktoré podsúvame sieti pre interpretáciu. Dáta musia byť pred posunutím vstupnej vrstve často predspracované, aby bola sieť schopná interpretovať ich. Počet neurónov na vstupnej vrstve je ovplyvnený množstvom dát, ktoré máme na vstupe. V sieti existuje iba jediná vstupná vrstva.
+%\newline
+\noindent
+
+\textbf{Výstupná vrstva} - interpretácia dát sieťou. Výstupnú vrstvu je možné nazvať ,,výsledok"  siete.
+\noindent
+
+\textbf{Skrytá vrstva} - nachádzajú sa medzi vstupnou a výstupnou vrstvou. Ich počet určuje hĺbku siete. NN nemusí mať ani jednu skrytú vrstvu, no takáto sieť dokáže modelovať iba lineárnu závislosť. Všeobecne platí, že čím viac skrytých vrstiev má sieť, tým zložitejšie vzťahy dokáže simulovať. Zvyšujú sa však aj nároky na učenie a výpočtové nároky. Jediná skrytá vrstva vytvára pozoruhodný rozdiel v aplikovatelnosti modelu, keďže prekonáva hranicu lineárnej závislosti funkcie, ktorú model pokrýva. Pri vysokej zložitosti modelu je možné naraziť na problém preučenia, ktorý bráni sieti korektne generalizovať. Neexistuje nijaký spoľahlivá metóda pre správny počet alebo veľkosť skrytých vrstiev. Empiricky sa vyvinulo niekoľko odhadov, ale v praxi je nutné overovať správnosť modelu praktickou evaluáciou. Odhadové pravidlá najčastejšie padajú na neschopnosti integrovať vo svojom rozhodnutí komplexitu úlohy a redundanciu v tréningových dátach ~\cite{Goodfellow-et-al-2016-Book}.
+%\newline
+\noindent
+
+\textbf{Prepojenia} - Váhované prepojenia medzi neurónmi fungujú ako pamäť neurónovej siete. V jednoduchom modeli neurónovej siete sú prepojenia iba medzi neurónmi navzájom susediacich vrstiev. Prepojenie existuje medzi každým neurónom \textit{n}-tej do \textit{n+1} vrstvy. Neuróny jednej vrstvy pritom medzi sebou nie sú prepojené. Signál sa šíri týmito prepojeniami od vstupnej vrstvy smerom k výstupnej vrstve v jednom smere, ako je to ilustrované na obr.~\ref{fig:fnn}. Takéto siete sa volajú \textit{dopredné}. Hlavný účel prepojenia je niesť váhu. Váha prepojenia určuje, aký významný je vzťah medzi dvomi danými neurónmi, ktoré spája. Korektná váha daného prepojenia je na začiatku neznáma, jej korektné nastavenie je výsledkom procesu učenia~\cite{Goodfellow-et-al-2016-Book}.
+%\newline
+\noindent
+
+\textbf{Neurón} - predstavuje základnú stavebnú jednotku neurónovej siete. Skladá sa z \textit{aktivačnej funkcie} a \textit{prahovej hodnoty}. Prahová hodnota neurónu $\vartheta _{i}^{k+1}$  je odpočítaná od sumy vstupných váhovaných hodnôt $ w_{ij}^{k}\, .\, o_{j}^{k}$. 
+\newline
+Na výsledok $o_{i}^{k+1}$ sa následne aplikuje aktivačná funkcia $f$ podľa obr.~\ref{fig:neuronoutput}. Takýto výstup je následne prepojeniami posielaný do ďaľších neurónov. Špeciálny prípad je neurón vstupnej a výstupnej vrstvy. Na vstupe totiž neurón hodnotu iba posiela ďalej a na výstupe po spracovaní nie je zasielaná nikam - predstavuje výsledok siete.
+\newline
+
+
+
+%\[o_{i}^{k+1}= f\left ( \sum_{j=1}^{N} w_{ij}^{k}\, .\, o_{j}^{k}\, -\, \vartheta _{i}^{k+1} \right )\]
+
+
+\begin{figure}[H]
+\begin{center}\includegraphics[scale=0.64]{neuronoutput}\end{center}
+\caption[neuronoutput]{Výstupná hodnota neurónu~\cite{kvasnivcka1997uvod}}\label{fig:neuronoutput}
+\end{figure}
+
+%\newline
+\noindent
+
+
+
+\begin{figure}[H]
+\begin{center}\includegraphics[scale=0.64]{fnn}\end{center}
+\caption[fnn]{Štruktúra doprednej neurónovej siete (FNN)~\cite{jaeger2002tutorial}}\label{fig:fnn}
+\end{figure}
+
+\section{Učenie neurónovej siete}
+\label{analyza_ucenie_nn}
+
+Učenie predstavuje kľúčovú aktivitou pre schopnosť siete produkovať požadované výsledky. Spočíva vo vystavovaní neurónovej siete tréningovým dátam, ktoré sa sieť snaží interpretovať.
+
+\textbf{Učenie s učiteľom} je metóda, pri ktorej je dostupná sada tréningových dát ,,označená". Pri interpretovaní výsledku je možné okamžite určiť, aká chyba nastala a následne ju propagovať do siete. Na toto sa využíva tzv. \textit{spätná propagácia}(backpropagation), ktorá upravuje váhy siete v rozsahu chyby, ktorá nastala - rozdiel medzi správnym výsledkom pre daný vstup a samotným výsledkom siete.
+\noindent
+
+\textbf{Učenie bez učiteľa} predstavuje alternatívnu metódu, pri ktorej tréningové dáta nemajú dostupné výsledky. Neurónová sieť sa sama učí rozhodnúť, čo je pre ňu relevantné. Učenie bez učiteľa predstavuje možnosť ako získať takmer neobmedzené množstvá tréningových dát tam, kde učenie s učiteľom vyžaduje manuálne a kvôli časovej náročnosti nedostupné označovanie.
+\noindent
+
+
+\section{Hyperparametre}
+\label{analyza_hyperparametre}
+
+Nastavenia, pomocou ktorých kontrolujeme správanie neurónových sietí sa nazývajú \textit{hyperparametre}. Tieto hodnoty nie sú získané učením siete pokiaľ nemodelujeme vnorený systém za týmto účelom. Príkladom hyperparametra je počet skrytých vrstiev NN. Pri nízkom počte nebude model schopný naučiť sa funkciu definovanú problémom. Pri vysokom počte je možné, že sieť v sebe uloží menší tréningový dataset, nazývané tiež ako problém \textit{preučenia}(overfitting). Pri preučení sieť nezíska schopnosť generalizácie problému kvôli sledovaniu tréningového datasetu. Je zjavné, že zvolenie správnych hyperparametrov má pre výsledky metódy kľúčovú úlohu~\cite{Goodfellow-et-al-2016-Book}.
+ Medzi ďaľšie významné hyperparametre patria:
+\begin{my_itemize}
+	\item {Šírka jednotlivých vrstiev}
+	\item {Rýchlosť učenia}
+	\item {Momentum}
+	\item {Aktivačné funkcie neurónov}
+\end{my_itemize}
+
+
+
+\section{Rekurentné neurónové siete}
+\label{analyza_pokrocile_modely_nn}
+
+Do popredia výskumu sa v súčasnosti dostávajú pokročilé modely, ktoré už nie sú obmedzené na jednoduchý dopredný prístup. Vďaka rapídnemu zvyšovaniu výkonu grafických kariet sa čoraz častejšie aplikujú \textit{rekurentné modely neurónových sietí}(RNN)~\cite{jaeger2002tutorial}. Špecializáciou rekurentných sietí je práca so sekvenčnými dátami. Tieto siete predstavujú generalizáciu dopredných modelov ich rozšírením o cyklické prepojenia~\cite{Goodfellow-et-al-2016-Book}.
+Takýmto spôsobom je možné využiť súčasnú hodnotu premennej na ovplyvnenie vlastnej hodnoty v budúcnosti. Cyklický charakter rekurentného modelu je zobrazený na obr.~\ref{fig:rnn}.
+
+\begin{figure}[H]
+\begin{center}\includegraphics[scale=0.64]{rnn}\end{center}
+\caption[rnn]{Štruktúra rekurentnej neurónovej siete~\cite{jaeger2002tutorial}}\label{fig:rnn}
+\end{figure}
+
+\section{Siete s dlhou krátkodobou pamäťou - LSTM}
+
+
+LSTM predstavuje vylepšený model RNN. Vnútorná štruktúra ako doplnok ku externej rekurencii medzi jednotlivými neurónmi obsahuje aj \textit{internú rekurenciu}, zobrazenú v štruktúre LSTM neurónu na obr.~\ref{fig:lstm}. Medzi najdôležitejšie súčasti tohto modelu patria sigmoidné brány, ktoré rozhodujú o tom, ako sa signál bude širiť. LSTM tak prekonáva problém strácajúceho sa gradientu, ktorým trpí klasická RNN architektúra~\cite{hochreiter1997long}.
+\newline
+\textbf{Brána zabudnutia} ovplyvňuje, či nastáva vnútorná rekurencia neurónu. Stav tak môže ale nemusí byť faktorom ovplyvňujúcim nasledujúcu iteráciu výpočtu v sieti. Významné zlepšenie v LSTM sieťach prišlo s myšlienkou \textit{kontextom podmieneného zabúdania}. Takýto model sa ukazuje extrémne výhodným pri riešení problémov zahŕňajúcich \textit{časové pauzy}(lags)~\cite{gers2000learning}.
+ Dôležitý prvok  na obr.~\ref{fig:lstm} predstavuje čierna kocka. Označuje pauzu o veľkosti jednej iterácie. Hodnota signálu tak ovplyvňuje nasledujúcu iteráciu, tj. vplýva na neskoršie udalosti.
+\newline
+\noindent
+
+
+%ako do riti mam prelozit peepholes? 
+\textbf{Nazeracie diery}(peepholes) predstavujú vylepšenie LSTM. Rieši problémy, ktoré vznikajú na základe faktu, že brána nedostáva priame informácie o stave jadra LSTM bloku(CEC). Táto situácia nastáva, keď je výstupná brána zatvorená. \textit{Nazeranie} predstavuje techniku váhovaného prepojenia CEC s bránami bloku daného jadra. Prepojenia sú štandardné s výnimkou časovej pauzy. Schéma nazerania v LSTM bloku je zobrazená na obr.~\ref{fig:peepholes}.
+
+LSTM siete v praxi dokázali svoje schopnosti pri aplikácií na rôzne netriviálne dátové problémy. Pozornosť je kladená na frekventovanú časovú závislosť v dátach:
+%deeplearning LSTM ma odkazy na konkretne projekty
+\begin{my_itemize}
+	\item{Rozoznávanie rukopisu} ~\cite{greff2015lstm}
+	\item{Rozoznávanie reči} ~\cite{graves2013speech}
+	\item{Označovanie obrázkov} ~\cite{kiros2014unifying}
+\end{my_itemize}
+
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.64]{lstm}\end{center}
+\caption[lstm]{Štruktúra LSTM bunky~\cite{gers2003learning}}\label{fig:lstm}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.50]{peepholes}\end{center}
+\caption[peepholes]{Schéma nazerania v LSTM bloku~\cite{gers2003learning}}
+\label{fig:peepholes}
+\end{figure}
+
+\chapter{Výskum v danej oblasti}
+\label{analyza_vyskum_danej_oblasti}
+
+V tejto časti sa zaoberáme štúdiou dostupných riešení pre problém úbytku zákazníkov. Zameriavame sa na metódy strojového učenia. Analýza poskytuje náhľad do konkrétneho biznis odvetvia, v ktorom bol skúmaný úbytok zákazníkov pre lepšie pochopenie stratégie, s ktorou bolo spracovanie dát a použité metódy optimalizované.
+
+\section{Markovove reťazce, náhodné lesy}
+
+Štúdia aplikuje štatistické modely, medzi nimi najúspešnejšie \textit{Markovove reťazce} a \textit{náhodné lesy} pri predikcii úbytku zákazníkov spoločnosti poskytujúcej káblovú televíziu. Skúmaná spoločnosť v minulosti rýchlo získala veľký podiel zákazníkov na trhu, o ktorý začala stabilne počas rokov prichádzať. Táto spoločnosť za použitia metód na predpovedanie úbytku zákazníkov dokázala takmer zdvojnásobiť svoje zisky zameriavaním sa na pozitívnu motiváciu najrizikovejších zákazníkov~\cite{burez2007crm}. 
+\newline
+Spoločnosť ponúka stabilné ročné predplatné bez možnosti prerušenia zmluvy. Nahlasovanie plánovaného nepredlžovania zmluvy je povinné v poslednom mesiaci zmluvy, pričom neohlásenie automaticky predlžuje zmluvu na ďaľší rok. V štúdii boli sledovaní zákazníci, ktorí mali aktívnu zmluvu vo \textit{vzorkovacom dátume}(28. 2. 2002) a neboli vylúčení kvôli neplateniu predplatného. 
+\newline
+\subsection{Dataset}
+\label{markov_dataset}
+Dataset zákazníkov obsahuje nasledovné informácie o zákazníkoch:
+
+\begin{my_itemize}
+	\item{Zmluvné} - počet mesiacov trvania predplatného, mesiac ukončenia, typ produktu, špeciálne balíčky(šport, filmové, ...), spôsob platby
+	\item{Socio-demografické} - vek, pohlavie, región, biznis
+	\item{Finančné} - upomienky, typ upomienok, čas od poslednej upomienky
+	\item{Historické} - počet obnov predplatného, získané zľavy 
+\end{my_itemize}
+
+
+Evidovaní zákazníci, ktorí opustili spoločnosť tvoria 15\% z datasetu. Pri využití metód bola vyhradená časť dát(60\%) pre kalibráciu a časť(40\%) pre testovanie úspešnosti. Stratifikácia bola aplikovaná kvôli udržaniu pomeru 15\% odchádzajúcich zákazníkov pre obe časti~\cite{neslin2004defection}.
+
+\subsection{Markovove reťazce}
+\label{markov_markov}
+
+Markovove reťazce sú pravdepodobnostná technika pre reprezentáciu korelácie medzi za sebou idúcimi pozorovaniami. Táto štúdia poukazuje na vplyv sekvencie v odoberanom type produktu na predpoveď, viď. tabuľku ~\ref{fig:producttable}. Kvôli tomuto javu boli využité Markovove reťazce.
+
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.50]{producttable}\end{center}
+\caption[producttable]{Sekvencia typu odoberanej služby dvoch zákazníkov~\cite{burez2007crm}}
+\label{fig:producttable}
+\end{figure}
+
+\subsection{Náhodné lesy}
+\label{markov_lesy}
+
+Kvôli svojej jednoduchosti použitia a interpretácie a schopnosti práce s ukazateľmi na rôznych úrovniach merania sa stali rozhodovacie stromy populárnou metódou predikcie. Ich nevýhody(ako napr. nedostatok robustnosti) úspešne rieši vytváranie veľkého počtu stromov so samostatným hlasovaním - lesov. Tento experiment využil náhodné lesy podľa štúdie L. Breimana~\cite{breiman2001random}.
+
+\subsection{Evaluácia}
+\label{markov_evaluacia}
+
+Štúdia pri evaluácii využíva počítanie zdvihu - pomeru zákazníkov predikovaných ako náchylných k prechodu a z nich zákazníkov, ktorí prešli inam, relatívne k percentu všetkých ušlých zákazníkov. Vysoký zdvih teda indikuje úspešný model. Pri 15,13\% úbytku zákazníkov teda perfektná predpoveď predstavuje $100/15,13 = 6,61$ zdvih. Na grafe~\ref{fig:lift} je možné vidieť úspešnosť jednotlivých metód pri vybratí daného percenta najohrozenejších zákazníkov. Vidno tu úspešnosť náhodných lesov aj takmer nulové zlepšenie logistickej regresie Markovovými reťazcami.
+
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.50]{lift}\end{center}
+\caption[lift]{Výsledky použitých metód pre dané \% najohrozenejších zákazníkov~\cite{burez2007crm}}
+\label{fig:lift}
+\end{figure}
+
+\section{Neurónová sieť}
+\label{metoda_neuronova_siet}
+
+Neurónová sieť bola využitá pri štúdii zaoberajúcej sa predikciou úbytku zákazníkov u mobilného operátora. Zdanlivo jednoduchý model využívajúci učenie s učiteľom priniesol prekvapivo dobré výsledky pre verejne dostupný dataset~\cite{sharma2013neural}.
+
+\subsection{Dataset}
+\label{nn_dataset}
+
+Záznamy 20 rôznych premenných od 2427 zákazníkov obsahujú okrem samotnej informácie o úbytku nasledovné informácie:
+\newline
+štát, doba aktívnosti účtu, kód oblasti, telefónne číslo, medzinárodný plán (áno/nie), služba hlasového záznamu, počet hlasových záznamov, prevolané minúty (deň/večer/noc), počet hovorov(deň/večer/noc), (deň/večer/noc) platba, medzinárodné služby, počet volaní na zákaznícku linku.
+
+\subsection{Neurónová sieť}
+\label{metoda_nn}
+
+Táto štúdia pracuje s klasickým modelom FNN pri predikcii. Ako prevencia problému preučenia funguje vyberanie náhodných záznamov do tréningového datasetu. Zbytok dát je využitých pre evaluáciu schopností siete predikovať úbytok.
+
+Výsledná úspešnosť siete dosahuje 92,35\%. Architektúra tejto siete využíva jeden neurón pre každý vstup na prvej vrstve. Informácie o čísle a štáte neboli zahrnuté, lebo plnili iba identifikačnú funkciu. Po rozsiahlejších experimentoch so skrytými vrstvami sa ako najlepšie riešenie ukazuje využitie jedinej skrytej vrstvy s 3 neurónmi. Na výstupe neurónová sieť poskytuje informáciu o prechode(áno/nie) ale aj istotu, s ktorou tento výsledok určila. 
+\newline
+Na obr.~\ref{fig:importance} je tiež vidno, ako boli vyhodnotené jednotlivé vstupné parametre z hľadiska dôležitosti. Tá je určená na intervale $<0; 1>$, pričom však zriedka prekročí $0,35$. Ako sa ukázalo, najdôležitejším indikátorom prechodu zákazníka je počet volaní na zákaznícku podporu a množstvo medzinárodných služieb.
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.50]{importance}\end{center}
+\caption[importance]{Vplyv parametrov na stratu zákazníka~\cite{sharma2013neural}}
+\label{fig:importance}
+\end{figure}
+
+Tento model správne predikuje až 97\% ostávajúcich zákazníkov. Správne však určí iba 66\% strácaných zákazníkov. Evaluácia tohto výsledku je teda ťažko interpretovatelná hodnotou 92\%. 
+
+\subsection{Hlboká konvolučná neurónová sieť}
+\label{metoda_konvolucna}
+
+
+Pokročilé modely neurónových sietí ako hlboké konvolučné siete dosahujú veľmi dobré výsledky pri problémoch spracovania obrazu~\cite{szegedy2015going}.
+Za účelom využitia týchto vlastností štúdia skladá z používateľskej aktivity obrazovú mapu - dvojrozmerné pole normalizovaných pixelov. Za účelom učenia má každý obraz dostupné označenie, ktoré hovorí či daný zákazník prešiel ku konkurencii alebo nie. Obr.~\ref{fig:pixelmap} zobrazuje ukážku aktivity zákazníka v dostupných službách za posledných $n$ dní~\cite{wangperawong2016churn}.
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.92]{pixelmap}\end{center}
+\caption[pixelmap]{Aktivita zákazníka v mape pixelov. Hodnota pixelov sa zvyšuje od modrej k červenej
+~\cite{wangperawong2016churn}.}
+\label{fig:pixelmap}
+\end{figure}
+
+Experiment uvažuje 30-dňové okno predikcie, z ktorého sieť usudzuje aktivitu zákazníka. Okno sa nachádza 14 dní pred posledným registrovaný telefonátom. Pokiaľ sa posledný registrovaný telefonát nekonal v posledných 14 dňoch od aktuálneho dátumu, považujeme zákazníka za neaktívneho a neberieme ho do úvahy.
+\newline
+Po vytvorení obrazového datasetu z dostupných záznamov boli dáta podsunuté konvolučnej neurónovej sieti na obr.~\ref{fig:convolutional}.
+Táto sieť má architektúru podobnú iným sieťam určeným pre spracovanie obrazu. Sieť analyzuje týždňové vzory v aktivite pomocou 7x1 filtra prvej konvolučnej vrstvy. Na konci siete je pomocou binárneho softmax klasifikátora vyhodnotený výsledok.
+\newline
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.46]{convolutional}
+\caption[convolutional]{Architektúra konvolučnej siete pre klasifikáciu zákazníkov z pixelovej mapy aktivity~\cite{wangperawong2016churn}.}
+\label{fig:convolutional}
+\end{center}
+\end{figure}
+
+Pomocou metódy \textit{oblasti pod krivkou}(AUC) bolo zistené, že konvolučná sieť dosahuje lepšie výsledku ako model CHAID rozhodovacieho stromu. AUC vyhodnocuje pravdivé aj nepravdivé pozitívne výsledky~\cite{hanley1982meaning}~\cite{bradley1997use}.
+
