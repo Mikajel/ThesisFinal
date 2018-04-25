@@ -7,40 +7,6 @@
 Problémovú oblasť v tejto práci predstavuje výber produktov a služieb v internetovom predaji, ktoré majú maximálny potenciál zaujať zákazníkov pri práci s predajným portálom. Na takéto vzťahy medzi produktami a zákazníkmi alebo produktami navzájom môže mať vplyv množstvo faktorov ako napríklad ročné obdobie, vek a pohlavie nakupujúceho, špeciálne zľavy.
 Táto problematika zahŕňa podproblémy, ktorým sa venujeme ako analýza nákupného košíka(Market basket analysis - ďalej ako MBA) alebo cross-selling.
  \newline
- 
-\section{Cross-selling}
-\label{cross_selling}
-Cross-selling reprezentuje generický názov pre snahu predať zákazníkovi prídavné produkty k jeho aktuálnemu výberu. V snahe neodradiť zákazníka nezaujímavými ponukami sa kladie dôraz na výber najrelevantnejších produktov, keďže je dôležité zobraziť zákazníkovi čo najmenej ponúk. Zahltenie zákazníka ponukami, ktoré pre neho nie sú relevantné totiž často vedie k nepríjemnému zážitku zákazníka a prejavuje sa ako na nákupe tak aj na šanci, že zákazník sa znovu rozhodne využiť konkrétny portál pre elektronický nákup v budúcnosti. Cross-selling je často charakterizovaný v zmysle ,,Ako predstavíme správny produkt správnemu zákazníkovi v správnom čase za pomoci správneho komunikačného kanálu pre zaistenie dlhodobého úspechu" ~\cite{li2011cross}.
-
-\subsection{Analýza nákupného košíka}
-\label{market_basket_analysis}
-
-Populárna technika využívaná pre cross-selling sa nazýva MBA. Hlavná idea spočíva v tom, že produkty, ktoré si už zákazník vybral v aktuálnom nákupe obsahujú cenné informácie o smerovaní odporúčania pre zákazníka. MBA využíva tri základné metriky pre vyhodnocovanie relevancie pravidiel vzhľadom na dostupné historické dáta~\ref{nengsih2015comparative}. 
-
-\begin{my_itemize}
-	\item {Support}
-	\item {Confidence}
-	\item {Lift}
-\end{my_itemize}
-
-\subsubsection{Support}
-\label{support}
-Neobvyklé udalosti či položky často predstavujú informácie, ktoré nemajú dostatočný význam pre ich sledovanie. Support predstavuje metriku vyhodnotenia dát ktoré chceme ich ignorovať v apriori algoritme. Pre konkrétny produkt/službu je sledovaný výskyt v dátach. Pokiaľ nedosahuje stanovenú úroveň, dáta sú ignorované ako nezaujímavé pre analýzu.
-
-Položky, ktoré sú takýmto spôsobom zredukované, sú následne analyzované podľa apriori algoritmu. \textbf{Apriori algoritmus} združuje často nakupované položky podľa ich spoločného výskytu v nákupoch. Algoritmus pracuje iteratívne - najprv vytvára dvojice, potom trojice, atď., až kým neexistujú skupiny, ktoré by dosahovali potrebnú frekvenciu výskytov nato, aby boli vyhodnotené ako skupina.
-
-\subsubsection{Confidence}
-\label{confidence}
-Metrika confidence vyhodnocuje podmieňenú pravdepodobnosť(P - probability) výskytu jedného pravidla alebo skupiny pravidiel(RHS - right hand side) za predpokladu, že sa už evidujeme pravidlo alebo pravidlá(LHS - left hand side).
-
-$conf(LHS\to RHS) = P(RHS | LHS) = \frac{P(RHS \cap LHS)}{P(LHS)} = \frac{supp(LHS\cap RHS)}{supp(LHS)}$
-
-\subsubsection{Lift}
-\label{lift}
-Lift predstavuje mieru zlepšenia výskytu hodnoteného pravidla za predpokladu iného pravidla. Je to pomer pravdepodobností výskytu oboch pravidiel v pomere k pravdepodobnosti výskytu pravidla, ktorého existenciu evidujeme(RHS)
-
-$lift(LHS\to RHS) = \frac{P(RHS \cap LHS)}{P(RHS)} = \frac{conf(LHS\to RHS)}{supp(RHS)}$
-
 
 \section{Odporúčacie systémy}
 \label{odporucacie_systemy}
@@ -89,38 +55,6 @@ Nedostatky prístupov vznikajú z neschopnosti nájsť asociácie medzi použív
 	\item{Problém nového produktu} - neschopnosť odporučiť produkt, ktorý sa zatiaľ nenachádza u iných používateľov
 	\item{Problém riedkosti} - kolaboratívne systémy vyžadujú kritickú masu používateľov, pri ktorej začínajú byť efektívne. Počet ohodnotení produktov je navyše často nepomerne menší k počtu odporúčaní, ktoré je nutné generovať.
 \end{my_itemize} 
-
-\chapter{Dáta sprístupnené pre prácu}
-\label{analyza_data}
-
-Pre túto prácu boli sprístupnené dáta z používateľských prístupov na stránky e-shopu ponúkajúceho produkty a služby tretích strán za výhodnejších podmienok. Partneri(tretie strany) uverejňujú svoje akciové ponuky na portáli, ktorý im ponúka zákaznícky atraktívne prostredie. Zákazníci sú motivovaní navštevovať portál kvôli tomu, že portál uverejňuje iba akciové ponuky. Spoločnosti získavajú zákazníkov bez potreby nadmernej reklamnej kampane tým, že sa ich ponuka objaví na portáli s vysokou navštevovanosťou. Pre túto prácu disponujeme s niekoľkomesačnými používateľskými dátami, ktoré predstavujú zhruba desať miliónov záznamov od milióna používateľov.
-
-\section{Získavanie dát}
-\label{analyza_ziskavanie_dat}
-
-Pri všetkých používateľských prístupoch a aktivitách portál eviduje potenciálne dôležité dáta o týchto prístupoch pre možnosti dátovej analytiky a rozpoznávania trendov v správaní zákazníkov pre generovanie pridanej hodnoty pomocou prispôsobovania sa a individuálneho prístupu k zákazníkom. Takéto biznis stratégie vedú k maximalizovaniu zisku z predaja a zákazníckej spokojnosti pri práci s portálom. Dáta sú kategorizované a inak spracúvané do použiteľnej podoby. Výsledkom je dataset, ktorý slúži ako základ pre prácu odporúčacích systémov, ktoré táto práca skúma.
-
-\subsection{Používateľské sedenie}
-\label{session}
-Snahou dátového zberu je schopnosť rozpoznať charakteristiky zákazníka, ktorý pristupuje k produktom a službám. Jeden ucelený prístup k portálu sa nazýva \textbf{používateľské sedenie}. Charakterizuje ju používateľ a jeho navigácia hierarchiou stránok portálu. Jedinečný používateľ je charakterizovaný unikátnym identifikátorom - \textbf{cookie}, ktorá je sprostredkovaná prehliadačom používateľa portálu. Problematika cookie spočíva v tom, že jeden používateľ môže vystupovať pod rôznymi cookie identifikátormi. Takáto situácia môže byť spôsobená prístupom z rôznych zariadení alebo cieleným používateľským zásahom do cookie - zmazaním, po ktorom používateľ odosiela cez prehliadač odlišnú cookie identifikáciu. Session ohraničujúca jeden prístup je rozdeľovaná pokiaľ používateľ presiahne časový rámec vyhradený pre jedno sedenie, ktorý štandardne predstavuje 30 minút, po ktorých je používateľské sedenie prerušené timeoutom a ďaľšie akcie zo strany používateľa sa považujú za nové samostatné sedenie.  ~\cite{zhou2010research}.
-
-Medzi najdôležitejšie dostupné údaje z datasetu patria:
-
-\begin{my_itemize}
-	\item {Cookie}
-	\item {Používateľský účet}
-	\item {Čas aktivity}
-	\item {Prehliadaný obsah}
-	\item {Druh aktivity}
-	\item {Kategória produktu}
-	\item {Cenový rozsah ponuky}
-	\item {Lokalita služby/produktu}
-	\item {Časový rozsah ponuky}
-	\item {Dostupnosť ponuky}
-	\item {Dodávateľ tretej strany}
-\end{my_itemize}
-
-Z uvedených údajov je možné roztriediť cookies a analyzovať jednotlivé prístupy, pohyb po portáli a položkách(produkty a služby) a nákupy.
 
 \chapter{Neurónové siete}
 \label{analyza_neuronove_siete}
@@ -204,15 +138,20 @@ Pri používaní gradient descent algoritmu je problematické správne odhadnú�
 \section{Hyperparametre}
 \label{analyza_hyperparametre}
 
-Nastavenia, pomocou ktorých kontrolujeme správanie neurónových sietí sa nazývajú \textit{hyperparametre}. Tieto hodnoty nie sú získané učením siete pokiaľ nemodelujeme vnorený systém za týmto účelom. Príkladom hyperparametra je počet skrytých vrstiev NN. Pri nízkom počte nebude model schopný naučiť sa funkciu definovanú problémom. Pri vysokom počte je možné, že sieť v sebe uloží menší tréningový dataset, nazývané tiež ako problém \textit{preučenia}(overfitting). Pri preučení sieť nezíska schopnosť generalizácie problému kvôli sledovaniu tréningového datasetu. Je zjavné, že zvolenie správnych hyperparametrov má pre výsledky metódy kľúčovú úlohu~\cite{Goodfellow-et-al-2016-Book}.
- Medzi ďaľšie významné hyperparametre patria:
-\begin{my_itemize}
-	\item {Šírka jednotlivých vrstiev} - ovplyvňuje koľko prepojení existuje a mení tak nároky siete na učenie ako aj zložitosť vzorov, ktoré sa sieť dokáže naučiť.
-	\item {Rýchlosť učenia} - rozhoduje o tom, v ako rozsahu bude upravovaná sieť pri spätnej propagácií. Vystupuje ako kvantifikátor aplikovanej zmeny váh.
-	\item {Momentum} - predstavuje riešenie pre problém lokálneho minima aj pre osciláciu pri stochastickom gradient descente. Vysoké momentum je schopné prekonať lokálne minimum a pri oscilácii okolo globálneho riešenia sa spomaľuje~\cite{attoh1999analysis}.
-\end{my_itemize}
+Nastavenia, pomocou ktorých kontrolujeme správanie neurónových sietí sa nazývajú \textit{hyperparametre}. Tieto hodnoty nie sú získané učením siete pokiaľ nemodelujeme vnorený systém za týmto účelom. Príkladom hyperparametra je počet skrytých vrstiev NN. 
 
-\section{Aktivačná funkcia}
+ Medzi ďaľšie významné hyperparametre patria:
+ 
+\subsubsection*{Šírka a počet skrytých vrstiev} Pamäť neuurónovej siete je zaznamenávaná neurónmi a váhovanými prepojeniami medzi nimi. Váhy upravované počas učenia nesú informácie, ktoré definujú náš model. Pri nízkom počte nebude model schopný naučiť sa funkciu definovanú problémom. Pri vysokom počte je možné, že sieť v sebe uloží menší tréningový dataset, nazývané tiež ako problém \textit{preučenia}(overfitting). Pri preučení sieť nezíska schopnosť generalizácie problému kvôli sledovaniu tréningového datasetu. Je zjavné, že zvolenie správnych hyperparametrov má pre výsledky metódy kľúčovú úlohu~\cite{Goodfellow-et-al-2016-Book}.
+
+\subsubsection*{Rýchlosť učenia} 
+Rýchlosť učenia(learning rate) rozhoduje o tom, v ako rozsahu bude upravovaná sieť pri spätnej propagácií. Vystupuje ako kvantifikátor aplikovanej zmeny váh.
+
+\subsubsection*{Miera výpadku neurónov}(dropout rate) - určuje, aká časť neurónov nebude pri tréningu použitá v každej etape. Náhodne vybrané neuróny následne nepropagujú signál, čím nútia neurónovú sieť nespoliehať sa na konkrétne nastavenie, čím sa redukuje problém preučenia a zlepšuje schopnosť generalizovať vzory v dátach~\cite{srivastava2014dropout}.
+\subsubsection*{Chybová funkcia}(loss function) - určuje mieru chyby, ktorá nastáva v priebehu učenia. Čím väčšia chyba, tým väčšie zmeny sú propagované pri učení siete. Miera chyby by sa v priebehu učenia mala graduálne zmenšovať v priebehu konvergencie modelu k správnemu riešeniu. Správna chybová funkcia je teda kritickou súčasťou modelu~\cite{christoffersen2004importance}.
+\subsubsection*{Momentum} - predstavuje riešenie pre problém lokálneho minima aj pre osciláciu pri stochastickom gradient descente. Vysoké momentum je schopné prekonať lokálne minimum a pri oscilácii okolo globálneho riešenia sa spomaľuje~\cite{attoh1999analysis}.
+
+\subsubsection*{Aktivačná funkcia}
 \label{activation_function}
 
 Aktivácia je matematická operácia aplikovaná na výstupy z predchádzajúcej vrstvy. Mení vstupné hodnoty na výstupný signál. 
@@ -235,7 +174,7 @@ Takýmto spôsobom je možné využiť súčasnú hodnotu premennej na ovplyvnen
 \caption[rnn]{Štruktúra rekurentnej neurónovej siete~\cite{jaeger2002tutorial}}\label{fig:rnn}
 \end{figure}
 
-\section{Siete s dlhou krátkodobou pamäťou - LSTM}
+\subsection{Siete s dlhou krátkodobou pamäťou - LSTM}
 
 
 LSTM predstavuje vylepšený model RNN. Vnútorná štruktúra ako doplnok ku externej rekurencii medzi jednotlivými neurónmi obsahuje aj \textit{internú rekurenciu}, zobrazenú v štruktúre LSTM neurónu na obr.~\ref{fig:lstm}. Medzi najdôležitejšie súčasti tohto modelu patria sigmoidné brány, ktoré rozhodujú o tom, ako sa signál bude širiť. LSTM tak prekonáva problém strácajúceho sa gradientu, ktorým trpí klasická RNN architektúra~\cite{hochreiter1997long}.
@@ -265,138 +204,73 @@ LSTM siete v praxi dokázali svoje schopnosti pri aplikácií na rôzne netrivi�
 \label{fig:lstm}
 \end{figure}
 
+\chapter{Dáta sprístupnené pre prácu}
+\label{analyza_data}
+
+Pre túto prácu boli sprístupnené dáta z používateľských prístupov na stránky e-shopu ponúkajúceho produkty a služby tretích strán za výhodnejších podmienok. Partneri(tretie strany) uverejňujú svoje ponuky na portáli, ktorý im ponúka zákaznícky atraktívne prostredie. Spoločnosti získavajú zákazníkov bez potreby nadmernej reklamnej kampane tým, že sa ich ponuka objaví na portáli s vysokou navštevovanosťou.
+
+Pri všetkých používateľských prístupoch a aktivitách portál eviduje potenciálne dôležité dáta o týchto prístupoch pre možnosti dátovej analytiky a rozpoznávania trendov v správaní zákazníkov pre generovanie pridanej hodnoty pomocou prispôsobovania sa a individuálneho prístupu k zákazníkom. Takéto biznis stratégie vedú k maximalizovaniu zisku z predaja a zákazníckej spokojnosti pri práci s portálom. Dáta sú kategorizované a inak spracúvané do použiteľnej podoby. Výsledkom je dataset, ktorý slúži ako základ pre prácu odporúčacích systémov, ktoré táto práca skúma.
+
+\section{Štruktúra dát}
+
+
+
+\subsection{Sekvenčné dáta}
+
+Po roztriedení používateľov podla unikátneho identifikátora dostávame sekvencie akcií používateľa na webe. \textbf{Sekvenčné dáta} predstavujú hlavný informačný vstup pre zvolenú metódu strojového učenia - rekurentné neurónové siete. Sú charakteristické tým, že zachytávajú chronologický sled udalostí v rámci definovanej domény. Sekvenčné dáta nemusia mať nutne diskrétny časový charakter - časové intervaly môžu byť rôzne medzi jednotlivými udalosťami a taktiež nie je podmienkou aby boli intervaly známe. Dôležité je zachovanie následnosti jednotlivých udalostí v čase.
+
+\subsection{Obsah dát}
+Medzi najdôležitejšie dostupné údaje z datasetu používateľských akcií patria:
+
+\begin{my_itemize}
+	\item {Cookie}
+	\item {Používateľské ID}
+	\item {Čas aktivity}
+	\item {Prehliadaný obsah}
+	\item {Typ akcie}
+	\item {Kategória produktu}
+	\item {Cenový rozsah ponuky}
+	\item {Časový rozsah ponuky}
+	\item {Dostupnosť ponuky}
+	\item {Dodávateľ tretej strany}
+\end{my_itemize}
+
+\subsubsection*{Používateľské ID a cookie} 
+Používateľ je v dátach identifikovateľný dvomi spôsobmi. Pokiaľ je používateľ registrovaný a prihlásený, jeho akcie sú spojené s jeho používateľským identifikátorom v databáze. Avšak títo používatelia predstavujú menšinu v dátach. V praxi väčšina e-shopov nevyžaduje registráciu pred nákupom a vzniká množstvo dát bez odkazu na registrovaného používateľa. Tieto akcie sú ukladané pod používateľskou cookie.
+
+\textbf{Cookie} predstavuje unikátny identifikátor webového prehliadača voči internetu. Okrem identifikácie používateľa sa využíva na udržiavanie stavu v HTTP prostredí a po prijatí od webového servera sa ukladá na disk používateľa. Problematika cookie spočíva v tom, že jeden používateľ môže vystupovať pod rôznymi cookie identifikátormi. Takáto situácia môže byť spôsobená prístupom z rôznych zariadení alebo cieleným používateľským zásahom do cookie - zmazaním, po ktorom používateľ odosiela cez prehliadač odlišnú cookie identifikáciu. Akcie pri ktorých máme iba cookie však predstavujú väčšinu a ich vynechanie je stratou dát cenných pre algoritmy strojového učenia.
+
+
+\subsubsection*{Používateľské sedenie}
+\label{session}
+Snahou dátového zberu je schopnosť rozpoznať charakteristiky zákazníka, ktorý pristupuje k produktom a službám. Jeden ucelený prístup k portálu sa nazýva \textbf{používateľské sedenie}(user session). Charakterizuje ho používateľ a jeho navigácia hierarchiou stránok a inými interakciami v rámci portálu.  Sedenie ohraničujúce jeden používateľský prístup je definované ako sekvencia akcií, trvajúca pokým nedojde ku neaktivite používateľa presahujúcej definovaný časový rámec. Štandardný rozsah pre toleranciu neaktivity je 30 minút.  ~\cite{zhou2010research}.
+
+
+Dostupné dáta sa po technickej stránke delia na dve skupiny: 
+\begin{my_itemize}
+	\item {Metadáta} 
+	\item {Behaviorálne dáta}
+\end{my_itemize}
+
+\subsection{Metadáta}
+
+Metadáta sú databázová schéma obsahujúca štrukturované údaje o používateľoch, partneroch, ponukách, podponukách a iných dátových entitách, ktoré e-shop eviduje. 
+
+\subsection{Behaviorálne dáta}
+Behaviorálne dáta predstavujú záznamy používateľských akcií na portáli. Akcie pochádzajú z interakcie používateľa so stránkou. Každá akcia predstavuje záznam v databáze, s príslušným typom akcie, identifikátorom používateľskej cookie, príslušnou časovou pečiatkou zo vzniku akcie a ďalšími informáciami. Tieto informácie sa odkazujú na metadáta. \newline Medzi najpodstatnejšie typy akcií patria napríklad: 
+\begin{my_itemize}
+	\item {Zobrazenie produktov} 
+	\item {Náhľad na ponuku}
+	\item {Prezeranie hodnotení ponuky}
+	\item {Pridanie do košíka}
+	\item {Uskutočnenie nákupu}
+\end{my_itemize}
+
+
 \chapter{Výskum v danej oblasti}
 \label{analyza_vyskum_danej_oblasti}
 
 V tejto časti sa zaoberáme štúdiami skúmajúcimi aplikáciu data-miningu pri generovaní odporúčaní a aplikáciou neurónových sietí v dátovej analytike. Tieto štúdie vedú k optimalizácii poskytovania online produktov a služieb.
-
-\section{RecSys Challenge 2015}
-\label{recsys_challenge}
-
-RecSys Challenge 2015 bola súťaž v data-miningu zameranom na odporúčacie zariadenia vyhlásená organizáciou ACM. Súťažiaci mali možnosť implementovať riešenie, ktoré by dokázalo s čo najväčšou úspešnosťou predpovedať na testovacej množine nákupy v online obchode~\cite{ben2015recsys}.
-
-\subsection{Dáta}
-Pre túto súťaž boli poskytnuté dáta od vlastníka väčšieho európskeho portálu pre elektronický predaj. Dáta reprezentujú zhruba 6 mesačnú aktivitu používateľov na portáli. Dokopy súbory obsahujú vyše 33 miliónov záznamov z klikov zoskupených do 9.5 milióna sedení. Z toho bolo predaných 1.1 milióna položiek. Dáta sú rozdelené do dvoch súborov:
-
-\begin{my_itemize}
-	\item{yoochoose-clicks.dat}\newline
-	- ID sedenia, čas, ID položky, kategória položky
-	\newline
-	\item{yoochoose-buys.dat}\newline
-	- ID sedenia, čas, ID položky, cena, množstvo
-	
-\end{my_itemize}
-
-Cieľom súťaže bolo predpovedať, ktoré používateľské sedenia budú nákupné a ktoré z prehliadaných položiek budú kúpené. Metrikou pre úspešnosť bol vzorec:
-
-
-\label{recsys_evaluation}
-$$
-score(Sl)=\Sigma_{\forall S \in Sl} =\\
-\begin{cases}
-	if s \in Sb \to \frac{Sb}{S} + \frac{|AS\cap BS|}{|AS\cup BS|} \\
-	else \to -\frac{Sb}{S}\\
-\end{cases}
-$$
-
-kde platí:
-
-\begin{my_itemize}
-	\item{Sl} - počet sedení vložených ako riešenie
-	\item{S} - počet všetkých sedení v teste
-	\item{s} - sedenie v teste
-	\item{Sb} - počet nákupných sedení v teste
-	\item{As} - sada predikovaných nákupov v sedení s
-	\item{Bs} - sada kúpených položiek v sedení s
-\end{my_itemize}
-
-Perfektné skóre dosiahnuteľné pre tento dataset s danou metrikou je 135176, pričom víťazný tím dosiahol skóre 63102. Na obrázku \ref{fig:recsys} možno sledovať najlepšie riešenia v priebehu mesiacov.
-
-\begin{figure}[H]
-	\begin{center}
-		\includegraphics[scale=0.50]{recsys}\end{center}
-	\caption[recsys]{Najlepšie priebežné výsledky počas trvania súťaže~\cite{ben2015recsys}}
-	\label{fig:recsys}
-\end{figure}
-
-
-\subsection{Predikcia nákupov pomocou LSTM BiRNN}
-\label{yoochoose_lstm}
-
-Štúdia~\cite{wu2015neural} využíva rekurentnú neurónovú sieť s krátkou dlhodobou pamäťou(LSTM) pri predikcií YooChoose datasetu vzorov v klikaní na stránkach internetového predajného portálu. Prístup oddeľuje dve separátne problematiky - predikciu nákupných sedení a následne predikciu kúpených položiek. 
-
-Dostupné dáta~\ref{recsys_challenge} sú predspracované na vstup do neurónovej siete. Tá následne po tréningu predpovedá výsledky pre testovacie dáta. Po predspracovaní vyzerajú jednotlivé vstupy do siete nasledovne:\newline
-\linebreak
-
-
-\parbox{.45\linewidth}{
-
-	\begin{tabular}{||c||} 
-		\hline
-		Predpovedanie položiek  \\ [0.5ex] 
-		\hline\hline
-		Mesiac  \\ 
-		\hline
-		Deň v týždni  \\
-		\hline
-		Čas dňa(minúty) \\
-		\hline
-		Počet klikov na položku \\
-		\hline
-		Počet nákupov položky  \\ 
-		\hline
-		Aktuálna cena položky  \\
-		\hline
-		Maximálna cena položky \\
-		\hline
-		Minimálna cena položky \\
-		\hline
-		Položka na predaj \\
-		\hline
-		Trvanie kliku \\
-		\hline
-		Kategória \\ [1ex] 
-		\hline
-	\end{tabular}
-}
-\parbox{.45\linewidth}{
-	\begin{tabular}{||c||} 
-		\hline
-		Predpovedanie nákupného sedenia  \\ [0.5ex] 
-		\hline\hline
-		Počet kikov v sedení  \\ 
-		\hline
-		Počet unikátnych položiek v sedení  \\
-		\hline
-		Počet klikov za minútu \\
-		\hline
-		Minimálny počet klikov v sedení \\
-		\hline
-		Maximálny počet klikov v sedení  \\ 
-		\hline
-		Priemerný počet klikov \\
-		\hline
-		Trvanie sedenia \\
-		\hline
-		Priemerné trvanie kliku\\
-		\hline
-		Minimálna dĺžka kliku \\
-		\hline
-		Maximálna dĺžka kliku \\
-		\hline
-		... \\ [1ex] 
-		\hline
-	\end{tabular}
-}
-
-Táto práca sa porovnala s niekoľkými ďaľšími metódami ako gradient-boosting regresia a hlboká neurónová sieť (DNN). Skóre sa odvíja od metriky pre yoochoose dataset ~\ref{recsys_evaluation}.
-
-\begin{figure}[H]
-	\begin{center}
-		\includegraphics[scale=0.56]{recsys_yoochoose}\end{center}
-	\caption[pixelmap]{Vyhodnotenie}
-	\label{fig:evaluation}
-\end{figure}
 
 
 \subsection{Hlboká konvolučná neurónová sieť}

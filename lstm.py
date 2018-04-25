@@ -170,6 +170,18 @@ def get_input_target_lengths(check_print: bool = False) -> (int, int, int):
     return len(sample_user_tuple[0][0]), len(all_users_vectors[0][0]), len(sample_user_tuple[1])
 
 
+def score(logits, targets, weights) -> float:
+
+    batch_score = 0.0
+
+    for _ in range(len(logits)):
+
+        pass
+
+    return batch_score
+
+
+
 def RNN_1(
         x: tf.placeholder,
         n_input: int,
@@ -337,6 +349,26 @@ def run_training(
     correct_pred = tf.equal(tf.argmax(predictions, 1), tf.argmax(y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
+    # FIXME: must multiple elementwise, now I am multiplying [batch_size(bool samples)] to [output_size(float weights)]
+    print(predictions.shape)
+    score = tf.reduce_sum(
+        tf.multiply(
+            tf.cast(
+                tf.equal(
+                    tf.argmax(predictions, 1),
+                    tf.argmax(y, 1)
+                ),
+                tf.float32),
+            tf.reshape(
+                tf.tile(
+                    class_weights,
+                    [batch_size, 1]
+                ),
+                [batch_size, n_classes]
+            )
+        )
+    )
+
     init = tf.global_variables_initializer()
 
     with tf.Session() as session:
@@ -383,21 +415,23 @@ def run_training(
             log += '\nValidating after epoch: \n'
 
             batch_valid_accuracies = []
+            valid_score = 0
 
             for index in range(0, len(x_valid), batch_size):
                 x_batch_valid = x_valid[index:index + batch_size]
                 y_batch_valid = y_valid[index:index + batch_size]
 
-                batch_valid_accuracies.append(
-                    session.run(accuracy, feed_dict={x: x_batch_valid, y: y_batch_valid})
-                )
+                bva, bvs = session.run([accuracy, score], feed_dict={x: x_batch_valid, y: y_batch_valid})
+                batch_valid_accuracies.append(bva)
+                valid_score += bvs
 
             epoch_train_accuracy = 100 * np.mean(batch_train_accuracies)
             epoch_valid_accuracy = 100 * np.mean(batch_valid_accuracies)
 
             log += 'Loss after epoch:    {0:.4f}\n'.format(loss)
             log += 'Average train batch accuracy: {0:.4f}%\n'.format(epoch_train_accuracy)
-            log += 'Validation accuracy: {0:.4f}%\n\n'.format(epoch_valid_accuracy)
+            log += 'Validation accuracy: {0:.4f}%\n'.format(epoch_valid_accuracy)
+            log += 'Validation score: {0:.4f}%\n\n'.format(valid_score)
 
             if (np.mean(epoch_valid_accuracies[-10:]) - epoch_valid_accuracy > 0.2) and (epoch >= min_epoch_amount):
                 log += 'Stopping training because:\n'
@@ -411,15 +445,18 @@ def run_training(
         log += '\n\nFinal testing after all epochs: \n'
 
         batch_test_accuracies = []
+        test_score = 0
+
         for index in range(0, len(x_test), batch_size):
             x_batch_test = x_test[index:index + batch_size]
             y_batch_test = y_test[index:index + batch_size]
 
-            batch_test_accuracies.append(
-                session.run(accuracy, feed_dict={x: x_batch_test, y: y_batch_test})
-            )
+            bta, bts = session.run([accuracy, score], feed_dict={x: x_batch_test, y: y_batch_test})
+            batch_test_accuracies.append(bta)
+            test_score += bts
 
         log += 'Test accuracy: {0:.4f}%\n'.format(100 * np.mean(batch_test_accuracies))
+        log += 'Test score: {0:.4f}%\n\n'.format(test_score)
 
         dir_name = str(logtime_begin).split(' ')[0]
 
