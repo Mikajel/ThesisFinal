@@ -1,52 +1,179 @@
 \newpage
 \chapter{Dizajn} 
-
-\section{Návrh}
 \label{design}
 
-Navrhli sme doprednú neurónovú sieť na klasifikáciu používateľských sedení pre YooChoose dataset. Na vstupe do nej vchádzajú predspracované dáta z používateľských aktivít a na výstupe je určená pravdeposobnosť pre to, do ktorej skupiny patrí.
-
-\subsection{Predspracovanie}
-
-Na obrázku ~\ref{fig:preprocessing} je znázornený proces predspracovania dát zo zdrojových súborov na vektory. Záznamy o nákupoch sú využité na generovanie tried pre tréningovú množinu a množinu správnych odpovedí vo validácií a v teste. Záznamy o klikoch generujú vstupné vektory ktoré sú klasifikované.
-
-\begin{figure}[H]
-	\begin{center}
-		\includegraphics[scale=0.50]{preprocessing}\end{center}
-	\caption[preprocessing]{Na diagrame je znázornené predspracovanie dát}
-	\label{fig:preprocessing}
-\end{figure}
-
-\subsubsection{Vyvažovanie datasetu}
-Pre korektné učenie klasifikačných úloh je nutné poskytnúť neurónovej sieti v datasete vyváženú reprezentáciu jednotlivých tried. Prvotné pokusy ukázali, že pri nevyváženom rozdelení datasetu(v našom prípade 1:9 pomer nákupných sedení a nenákupných sedení) sa neurónová sieť môže naučiť favorizovať vysoko zastúpenú triedu. \newline
-Pri našom pomere je štatisticky výhodnejšie určiť, že sedenie nie je nákupné a dosiahnuť v priemere 80-90\% úspešnosť. Takáto informácia však nemá nijakú aplikáciu v praxi a preto preferujeme aj nižšiu úspešnosť so schopnosťou predpovedať obe triedy.\newline
-
-Pre odstraňovanie nerovností v klasifikácií existujú dva prístupy:
+\section{Definícia problému}
+Definujeme problém predpovedania používateľského správania a následného odporúčania partnerov pre produkty. Ako pokus o simuláciu tradičného používateľského sedenia berieme historický sled udalostí jedného používateľa. Po usporiadaní jeho akcií v čase(predpoklad pre použitie metód zameraných na sekvenčné dáta) delíme dostupnú sadu udalostí v preddefinovanom bode. Takýmto prístupom vytvárame simuláciu používateľských akcií v minulosti a správania, ktoré má byť predikované. Pomocou predspracovania následne:
 \begin{my_itemize}
-	\myitem{oversampling} - generovanie opakovaných dát z existujúcich pre triedy, ktorých zastúpenie je nedostatočné
-	\myitem{undersampling} - orezávanie tried s prebytočným počtom vzoriek
+	\item Extrahujeme informácie z minulosti do reprezentácie interpretovateľnej metódami neurónových sietí(vstupné vektory).
+	\item Definujeme reprezentáciu cieľovej budúcnosti, ktorá je matematicky dosiahnuteľná a nami interpretovateľná ako výstup z modelu(výstupné vektory). Problém je definovaný ako predikcia partnera, o ktorého produkt zákazník prejaví záujem vo svojom správaní v najbližšom časovom bode. Grafické znázornenie cieľového riešenia je na obrázku ~\ref{fig:usecase1}.
 \end{my_itemize}
 
-Pre naše účely si vyberáme oversampling. Predspracovanie datasetu je výpočtovo náročná úloha a rozdiel medzi oversamplingom a undersamplingom v našom datasete predstavuje 20-násobok potrebnej dátovej vzorky.
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{usecase1.png}\end{center}
+\caption[usecase1]{Vizuálna definícia zadaného problému}
+\label{fig:usecase1}
+\end{figure}
 
+\section{Predspracovanie}
 
-\subsubsection{Normalizácia}
-Interpretácia dát pre neurónovú sieť prechádza normalizáciou. Signál pre aktivačné funkcie je ľahšie interpretovateľný, pokiaľ sa nachádza v normálovom rozložení $<-1,1>$ alebo $<0,1>$ Preto každý parameter prechádza normalizáciou podľa svojho rozsahu.
+Predtým ako môžeme analyzovať dáta metódami strojového učenia, musia byť naše dáta predspracované. To zahŕňa vybranie vhodných informácií na sledovanie, odstraňovanie nečistôt a nekonzistencií v dátach, spracovanie chýbajúcich hodnôt, atď.
 
-\subsubsection{Architektúra siete}
-Testujeme architektúru doprednej siete s jednou skrytou vrstvou podľa obr.~\ref{fig:nn}. Skrytá vrstva obsahuje ReLU aktivačné funkcie. Na vstupe sa nachádza 9 neurónov prijímajúcich normalizované hodnoty vo vstupnom vektore podľa obr.~\ref{fig:preprocessing}. Na výstupe sa nachádzajú 2 výstupné neuróny na ktoré je aplikovaná softmax aktivácia pre škálovanie súčtu výstupných hodnôt pre jednotlivé triedy na 1. Na výstupe tak máme percentuálnu šancu pre danú triedu. \newline
+\subsection{Selekcia používateľov}
+V databáze sa nachádzajú používateľské akcie v počte niekoľkých desiatok miliónov záznamov. Tieto záznamy zhlukujeme podľa unikátnych cookie identifikátorov, reprezentujúcich používateľov. Z takto roztriedených používateľov následne odstraňujeme dáta, ktoré nespĺňajú nami definovené štandardy. Medzi odstraňovaných používateľov patria:
+
+\begin{my_itemize}
+	\item{Používatelia bez dostatočného počtu akcií}
+	\item{Používatelia s priveľkým počtom akcií(skripty, testovanie)}
+	\item{Používatelia evidovaní ako zamestnanci alebo partneri tretích strán}
+\end{my_itemize}
+
+Keďže zamestnaneckých ID je málo a počet akcií používateľov má Poissonovu distribúciu, najviac používateľov sa zahadzuje pri podmienke minimálneho počtu používateľských akcií. Táto podmienka je náročnejšia aj tým, že vyberáme iba podmnožinu všetkých typov používateľských akcií, ktorú považujeme za relevantnú pre predikciu správania v zmysle odporúčania.
+
+Nasledovné typy používateľských akcií sú akceptované na ďaľšie predspracovanie:
+\begin{my_itemize}
+	\item {Akcie zamerané na produkt:}\newline Tieto akcie obsahujú cieľovú entitu(ponuka, ktorá má zverejňujúceho partnera). Patrí sem \textbf{náhľad ponuky}, \textbf{ohodnotenie ponuky}, \textbf{náhľad na hodnotenia ponuky} a \textbf{pridanie ponuky do košíka}.
+	\item {Akcie bez zamerania na produkt:}\newline Patrí sem \textbf{zobrazenie zoznamu ponúk}, ktoré môže byť preddefinované kategóriou, špeciálnou promóciou portálu, ...
+\end{my_itemize}
+
+\subsection{Extrakcia čŕt}
+Následne rozdelíme akcie používateľa na predikujúce(vstupy) a predikované(výstup). Neurónové siete ako mnohé iné metódy strojového učenia nedokážu spracovať vstup ako ho vnímame my. Pracujú s numerickou interpretáciou informácií. Dáta je preto nutné upravovať do numerickej podoby. Tento proces sa nazýva kódovanie informácií. Zahŕňa taktiež normalizáciu dát.
+
+ Z dát extrahujeme nasledovné črty pre predikciu:
+ 
+ \begin{my_itemize}
+ 	\item Čas dňa
+ 	\item Deň v týždni
+ 	\item Deň v mesiaci
+ 	\item Mesiac roka
+ 	\item Typ používateľskej akcie
+ 	\item Trvanie akcie
+ 	\item Priemerné hodnotenie partnera
+ 	\item Počet hodnotení partnera
+ 	\item Cena ponuky
+ 	\item Počet predaní ponuky
+ 	\item Počet prehliadaní ponuky
+ 	\item Partner ponuky
+ 	\item Kategória ponuky
+ \end{my_itemize}
+ 
+ Extrahované črty sú následne kódované a normalizované. V našej práci používame tri rôzne druhy kódovania čŕt. 
+\subsubsection*{Spojité hodnoty}
+
+Najjednoduchšie črty na zakódovanie sú spojité črty. Jedná sa o spojité hodnoty v špecifickom rozsahu určenou maximálnou a minimálnou hodnotou. Príkladom spojitej hodnoty je cena ponuky, ktorá sa pohybuje v datasete v nejakom rozsahu. Takáto hodnote je priamo vkladateľná na vstup neurónovej siete ako súčasť vstupného vektora. Pre zjednodušenie učenia neurónovej siete však spojité hodnoty normalizujeme. \textbf{Normalizácia} predstavuje matematickú operáciu, ktorá škáluje hodnotu vstupu do rozsahu 0 až 1, kde 0 predstavuje minimum v datasete pre danú hodnotua 1 maximum.
+
+$$z_i=\frac{x_i-\min(x)}{\max(x)-\min(x)}$$\newline
+
+$x_i$ - \textit{i}-ta hodnota normalizovanej premennej\newline
+$z_i$ - \textit{i}-ta hodnota po normalizácii
+
+Náš dataset však obsahuje vysokú variabilitu v hodnotách, čo posúva minimá a maximá v datasete ďaleko od väčšiny hodnôt, ktoré sú na vstupe do kódovania čŕt na vstupe do neurónovej siete.\newline
+Kvôli tomuto miesto minima a maxima používame predpočítané hranice definované pre štatistické odchýlky interkvartilovým rozpätím podľa Tukeyho~\cite{tukey1977exploratory}. Týmto zaručíme vyššiu variabilitu po normalizácii pre majoritu hodnôt datasetu. Každá črta musí mať predpočítané samostatné definície pre odchýlky. Predpokladom pre použitie takejto detekcie odchýlok je normálové rozdelenie v dátach. Tento prístup  taktiež implikuje, že nie všetky dáta po zakódovaní budú v rozsahu 0 až 1.
 
 \begin{figure}[H]
-	\begin{center}
-		\includegraphics[scale=0.50]{NN}\end{center}
-	\caption[NN]{Graf znázorňuje architektúru siete}
-	\label{fig:nn}
+\begin{center}
+\includegraphics[scale=0.8]{outliers.png}\end{center}
+\caption[outliers]{Definícia štatistickej odchýlky}
+\label{fig:outliers}
 \end{figure}
+
+\textbf{Q2(Medián)} - 50ty percentil, stredná hodnota\newline
+\textbf{Q1} - 25ty percentil\newline
+\textbf{Q3} - 75ty percentil\newline
+\textbf{IQR} - medzikvartilové rozpätie (\textit{IQR = Q3-Q1})\newline
+\textbf{Dolná hranica odchýlky} - najmenšia hodnota neoznačená ako odchýlka (\textit{Min = Q1 - 1.5*IQR})\newline
+\textbf{Horná hranica odchýlky} - najväčšia hodnota neoznačená ako odchýlka (\textit{Max = Q3 + 1.5*IQR})\newline
+
+
+\subsubsection*{Cyklické hodnoty}
+
+Podobne ako spojité hodnoty, cyklické hodnoty vyjadrujú črty spojitého charakteru. Problematika cyklických hodnôt však spočíva v potrebe prekonania vzdialenosti medzi prvou a poslednou hodnotou, ktoré sú v klasickom kódovaní spojitých hodnôt na opačnom konci spektra, no v praktickom zmysle sú vedľa seba.\newline 
+
+
+Vzorec pre vytvorenie sínusovej a kosínovej črty z dát:
+$$x_{sin}=sin(\frac{2\pi*x_i}{x_{max}})$$
+$$x_{cos}=cos(\frac{2\pi*x_i}{x_{max}})$$
+
+\textbf{$x_{sin}$} - sínusová črta\newline
+\textbf{$x_{cos}$} - kosínová črta\newline
+\textbf{$x_i$}     - kódovaná hodnota\newline
+\textbf{$x_{max}$} - maximálna hodnota\newline
+
+
+
+Najlepším prikladom cyklickej hodnoty sú časové údaje. V klasickom kódovaní by sa čas 23:59 a 00:01 nachádzali pri hodnotách 0 a 1, no z praktického hľadiska sú takmer totožné. Aplikujeme preto sínosovo-kosínové šifrovanie, ktoré vytvára dve črty z jednej. Dve črty dokážu poskytnúť dvojdimenzionálnu informáciu reprezentujúcu cyklus~\cite{sincosencoding}.
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.18]{cyclical.jpg}\end{center}
+\caption[outliers]{Sínusovo-kosínové kódovanie}
+\label{fig:cyclical}
+\medskip
+\small
+Na ľavej strane je čas podľa klasického spojitého kódovania s normalizáciou. Na pravej strane cyklické kódovanie, kde sa začiatok a koniec nachádza vo svojej praktickej vzdialenosti~\cite{sincosencoding}.
+\end{figure} 
+
+\subsubsection*{Binárne hodnoty}
+
+V prípade kategorických premenným je štandardom pre neurónové siete binárne kódovanie pre tzv. vystrelovacie neuróny. V takomto prípade modelujeme jeden neurón pre každú triedu ktorá sa nachádza v datasete. Špecifikom potom ostáva, či môže byť aktívna iba jedna trieda(one-hot kódovanie) alebo viaceré. Aktívna trieda(triedy) sa nastavuje na hodnotu 1, neaktívne triedy ostávajú na hodnote 0. \newline
+V prípade nášich čŕt modelujeme ID partnera ako one-hot kódovanie, kde jedna ponuka patrí iba jednému partnerovi. Neurón tohto partnera sa nastavuje na 1. V prípade kategórií, ktoré majú podkategórie, sa všetky kategórie na ceste ku koreňovej kategórii nastavujú na 1. Takýto prístup pomáha neurónovej sieti učiť sa vzťahy medzi jednotlivými kategóriami pre potreby odporúčania z príbuzných kategórií. 
+
+\section{Architektúra}
+
+V tejto práci navrhujeme rekurentnú neurónovú sieť s fixným počtom rekurentných krokov a jedným výstupom(mnoho-ku-jednej architektúra). Sledujeme a vyhodnocujeme dopad na úspešnosť pomocou variability v parametroch a hyperparametroch:
+
+\begin{my_itemize}
+	\item počet rekurencií v čase
+	\item architektúra rekurentného neurónu(RNN/GRU/LSTM)
+	\item veľkosť skrytej vrstvy
+	\item miera výpadku neurónov
+	\item optimizátor
+	\item početnosť vstupných dávok
+	\item použitie váhovaného učenia
+	\item použitie/nepoužitie čŕt na vstupe
+\end{my_itemize}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{myrnnarch.png}\end{center}
+\caption[myrnnarch]{Generalizovaný návrh architektúry}
+\label{fig:myrnnarch}
+\end{figure} 
+
+Na obrázku~\ref{fig:myrnnarch} je všeobecný návrh použitej architektúry. Na vstupnej vrstve sú do modelu vkladané vstupné vektory v každom časovom kroku. Na skrytej vrstve sa nachádzajú rekurentné neuróny(RNN/GRU/LSTM). Signál zo skrytej vrstvy sa propaguje do výstupnej vrstvy, po ktorej sa aplikuje softmax normalizácia.
+
+%TODO: ako sa pocita loss a vahovany loss
+\subsubsection*{Výpočet a propagácia chyby}
+Výsledný signál na výstupe neurónovej siete v poslednom časovom kroku je transformovaný na one-hot vektor hodnôt, kde najsilnejší signál reprezentuje cieľovú triedu(partnera pre odporúčanie). Tento vektor sa následne porovnáva s predpočítaným cieľovým vektorom patriacim k vstupným vektorom vzorky z datasetu.\newline
+Používame dva typy chybovej funkcie:\newline
+\textbf{Softmax krížová entropia}\newline
+
+Definovaná ako:
+$$H_{y'}(y) = - \sum_{i} ({y_i' \log(y_i) + (1-y_i') \log (1-y_i)})$$
+$H_{y'}(y)$ - výsledná chyba\newline
+$i$ - index triedy vo vektoroch\newline
+$y_i$ - predikovaná hodnota pre triedu \textit{i}\newline
+$y_i'$ - cieľová hodnota pre triedu \textit{i}\newline
+
+\textbf{Váhovaná softmax krížová entropia}\newline
+
+% TODO opis vahovanie chyby a toto hento tamto veci 
+
+\subsubsection*{Priebeh a zastavovanie učenia}
+
+Učenie prebieha v epochách variabilného počtu. Pre zníženie problému preučenia sú tréningové dáta zamiešané pred každou novou epochou. Učenie následne prebieha v dávkach, kde je po každej dávke vypočítaná a spätne propagovaná chyba(\textit{loss}).
+
+
+
+
+
+\section{Metriky}
 
 
 \section{Implementácia}
 \label{implementation}
 
-Projekt je realizovaný v jazyku \textbf{Python}, ktorý je ideálny pre účely data-miningu ideálnou voľbou. Poskytuje rozsiahle balíky určené pre prácu vývojárov a dátovo zameraných výskumníkov ako napríklad \textit{numpy}, \textit{pandas} alebo \textit{matplotlib}. \newline
+Projekt je realizovaný v jazyku \textbf{Python}, ktorý je pre účely data-miningu ideálnou voľbou. Poskytuje rozsiahle balíky určené pre prácu vývojárov a dátovo zameraných výskumníkov ako napríklad \textit{numpy}, \textit{pandas} alebo \textit{matplotlib}. \newline
 Python bol voľbou aj kvôli frameworku \textbf{Tensorflow} od spoločnosti Google. Tensorflow obsahuje rozsiahlu podporu a nástroje pre implementáciu strojového učenia, špeciálne neurónových sietí.\newline
 Pre efektivitu práce je v projekte využitý \textbf{Jupyter}. Poskytuje notebooky, v ktorých je možné upravovať a spúšťať Python skripty po jednotlivých častiach v bunkách, udržiava stav premenných a poskytuje pracovné rozhranie v prostredí internetového prehliadača. Uľahčuje tak prácu so serverom, na ktorom sú realizované výpočty.

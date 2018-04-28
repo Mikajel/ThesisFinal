@@ -73,10 +73,10 @@ Podobne ako v mozgu, základ neurónovej siete tvoria neuróny a prepojenia medz
 %\newline
 \noindent
 
-\textbf{Výstupná vrstva} - interpretácia dát sieťou. Výstupnú vrstvu je možné nazvať ,,výsledok"  siete.
+\textbf{Výstupná vrstva} - interpretácia dát sieťou. Výstupnú vrstvu je možné nazvať ,,výsledkom" siete.
 \noindent
 
-\textbf{Skrytá vrstva} - nachádzajú sa medzi vstupnou a výstupnou vrstvou. Ich počet určuje hĺbku siete. NN nemusí mať ani jednu skrytú vrstvu, no takáto sieť dokáže modelovať iba lineárnu závislosť. Všeobecne platí, že čím viac skrytých vrstiev má sieť, tým zložitejšie vzťahy dokáže simulovať. Zvyšujú sa však aj nároky na učenie a výpočtové nároky. Jediná skrytá vrstva vytvára pozoruhodný rozdiel v aplikovatelnosti modelu, keďže prekonáva hranicu lineárnej závislosti funkcie, ktorú model pokrýva. Pri vysokej zložitosti modelu je možné naraziť na problém preučenia, ktorý bráni sieti korektne generalizovať. Neexistuje nijaký spoľahlivá metóda pre správny počet alebo veľkosť skrytých vrstiev. Empiricky sa vyvinulo niekoľko odhadov, ale v praxi je nutné overovať správnosť modelu praktickou evaluáciou. Odhadové pravidlá najčastejšie padajú na neschopnosti integrovať vo svojom rozhodnutí komplexitu úlohy a redundanciu v tréningových dátach ~\cite{Goodfellow-et-al-2016-Book}.
+\textbf{Skrytá vrstva(vrstvy)} - nachádzajú sa medzi vstupnou a výstupnou vrstvou. Ich počet určuje hĺbku siete. NN nemusí mať ani jednu skrytú vrstvu, no takáto sieť dokáže modelovať iba lineárnu závislosť. Všeobecne platí, že čím viac skrytých vrstiev má sieť, tým zložitejšie vzťahy dokáže simulovať. Zvyšujú sa však aj nároky na učenie a výpočtové nároky. Jediná skrytá vrstva vytvára pozoruhodný rozdiel v aplikovatelnosti modelu, keďže prekonáva hranicu lineárnej závislosti funkcie, ktorú model pokrýva. Pri vysokej zložitosti modelu je možné naraziť na problém preučenia, ktorý bráni sieti korektne generalizovať. Neexistuje nijaký spoľahlivá metóda pre správny počet alebo veľkosť skrytých vrstiev. Empiricky sa vyvinulo niekoľko odhadov, ale v praxi je nutné overovať správnosť modelu praktickou evaluáciou. Odhadové pravidlá najčastejšie padajú na neschopnosti integrovať vo svojom rozhodnutí komplexitu úlohy a redundanciu v tréningových dátach ~\cite{Goodfellow-et-al-2016-Book}.
 %\newline
 \noindent
 
@@ -147,13 +147,16 @@ Nastavenia, pomocou ktorých kontrolujeme správanie neurónových sietí sa naz
 \subsubsection*{Rýchlosť učenia} 
 Rýchlosť učenia(learning rate) rozhoduje o tom, v ako rozsahu bude upravovaná sieť pri spätnej propagácií. Vystupuje ako kvantifikátor aplikovanej zmeny váh.
 
-\subsubsection*{Miera výpadku neurónov}(dropout rate) - určuje, aká časť neurónov nebude pri tréningu použitá v každej etape. Náhodne vybrané neuróny následne nepropagujú signál, čím nútia neurónovú sieť nespoliehať sa na konkrétne nastavenie, čím sa redukuje problém preučenia a zlepšuje schopnosť generalizovať vzory v dátach~\cite{srivastava2014dropout}.
-\subsubsection*{Chybová funkcia}(loss function) - určuje mieru chyby, ktorá nastáva v priebehu učenia. Čím väčšia chyba, tým väčšie zmeny sú propagované pri učení siete. Miera chyby by sa v priebehu učenia mala graduálne zmenšovať v priebehu konvergencie modelu k správnemu riešeniu. Správna chybová funkcia je teda kritickou súčasťou modelu~\cite{christoffersen2004importance}.
-\subsubsection*{Momentum} - predstavuje riešenie pre problém lokálneho minima aj pre osciláciu pri stochastickom gradient descente. Vysoké momentum je schopné prekonať lokálne minimum a pri oscilácii okolo globálneho riešenia sa spomaľuje~\cite{attoh1999analysis}.
+\subsubsection*{Miera výpadku neurónov(dropout rate)} 
+Výpadok určuje pravdepodobnosť, s akou časť neurónov nebude pri tréningu použitá v každej etape. Náhodne vybrané neuróny následne nepropagujú signál, čím nútia neurónovú sieť nespoliehať sa na konkrétne nastavenie, čím sa redukuje problém preučenia a zlepšuje schopnosť generalizovať vzory v dátach~\cite{srivastava2014dropout}.
+\subsubsection*{Chybová funkcia(loss function)} 
+Chybová funkcia určuje mieru chyby, ktorá nastáva v priebehu učenia. Čím väčšia chyba, tým väčšie zmeny sú propagované pri učení siete. Miera chyby by sa v priebehu učenia mala graduálne zmenšovať v priebehu konvergencie modelu k správnemu riešeniu. Správna chybová funkcia je teda kritickou súčasťou modelu~\cite{christoffersen2004importance}.
+
+\subsubsection*{Momentum} 
+Momentum predstavuje riešenie pre problém lokálneho minima aj pre osciláciu pri stochastickom gradient descente. Vysoké momentum je schopné prekonať lokálne minimum a pri oscilácii okolo globálneho riešenia sa spomaľuje~\cite{attoh1999analysis}.
 
 \subsubsection*{Aktivačná funkcia}
 \label{activation_function}
-
 Aktivácia je matematická operácia aplikovaná na výstupy z predchádzajúcej vrstvy. Mení vstupné hodnoty na výstupný signál. 
 
 \textbf{Sigmoidná funkcia} - Produkuje signál v kladnom rozsahu $<0,1>$. Najefektívnejšia je pre dáta ktoré sú na vstupe v rovnakom rozsahu~\cite{sibi2013analysis}.
@@ -204,6 +207,28 @@ LSTM siete v praxi dokázali svoje schopnosti pri aplikácií na rôzne netrivi�
 \label{fig:lstm}
 \end{figure}
 
+\subsection{Trénovanie neurónovej siete}
+
+Predtým ako je neurónová sieť schopná riešiť problém, na ktorý bola definovaná, musí prebehnúť jej učenie. Proces učenia predstavuje vystavovanie neurónovej siete vstupným dátam ktoré považujeme za dostatočnú reprezentáciu problému, ktorý riešime. Štandardný prístup učenia s učiteľom nám dovoľuje sledovať, ako postupne neurónová sieť nadobúda schopnosť riešiť daný problém a smerovať jej učenie.
+\subsubsection*{Dátové množiny}
+
+Pre korektné učenie je nutné priebežne overovať schopnosť siete riešiť daný problém a v správnom momente učenie zastaviť, aby nedošlo k preučeniu. Za týmto účelom delíme dataset na niekoľko podmnožín.
+
+\begin{my_itemize}
+	\item {Tréningová sada} - spravidla najväčšia časť dostupných dát, je predkladaná sieti ako zdroj dát z ktorých je generalizované riešenie problému.
+	\item {Testovacia sada} - slúži na priebežné overovanie schopností neurónovej siete. Chyba z validačnej sady nesmie byť propagovaná naspäť do neurónovej siete. Taktiež slúži ako indikátor začiatku preučenia. Výsledky testovacej sady sú priebežne porovnávane s tréningovou sadou. Ak testovacia sada prestane dosahovať lepšie výsledky, no tréningová sada sa stále zlepšuje, učenie končí. V tomto bode sieť skonvergovala do optima a začína sa preúčať na špecifiká tréningovej sady.
+	\item {Validačná sada} - slúži na finálne overenie výsledkov učenia, pri dostatočnom rozsahu by jej výsledky mali byť rovnaké ako na testovacej sade. 
+\end{my_itemize}
+
+\subsubsection*{Epocha}
+
+Epocha predstavuje jednu celú tréningovú sadu, resp. jej vystavenie sieti pri učení. V závislosti na komplexite riešeného problému a rýchlosti učenia môže konvergencia modelu vyžadovať množstvo epoch učenia.
+
+\subsubsection*{Dávka}
+
+Podmnožina epochy sa volá dávka. Jej veľkosť závisí od definovaného problému. Mala by byť dostatočne veľká nato, aby chyba pri jednotlivých dávkach nebola príliš variabilná. Priveľké dávky však pri učení môžu viesť k rýchlejšiemu preučeniu. V dávkovanom učení je chyba vypočítaná ako priemer chýb z každej vzorky v dávke. Dávkovanie vzoriek umožňuje rýchlejšie matematické operácie ako trénovanie a spätná propagácia každej jednotlivej vzorky dát.
+
+
 \chapter{Dáta sprístupnené pre prácu}
 \label{analyza_data}
 
@@ -213,7 +238,7 @@ Pri všetkých používateľských prístupoch a aktivitách portál eviduje pot
 
 \section{Štruktúra dát}
 
-
+% tu by to asi tiez nieco chcelo 
 
 \subsection{Sekvenčné dáta}
 
@@ -304,3 +329,10 @@ Táto sieť má architektúru podobnú iným sieťam určeným pre spracovanie o
 
 Pomocou metódy \textit{oblasti pod krivkou}(AUC) bolo zistené, že konvolučná sieť dosahuje lepšie výsledku ako model CHAID rozhodovacieho stromu. AUC vyhodnocuje pravdivé aj nepravdivé pozitívne výsledky~\cite{hanley1982meaning}~\cite{bradley1997use}.
 
+\chapter{Ciele práce}
+
+Oblasti umelej inteligencie a strojového učenia v doméne odporúčania a predikcie poskytujú množstvo priestoru pre výskum a experimentovanie. Každý dataset a metóda sú špecifické a pre množstvo problémov a podproblémov neexistuje univerzálny prístup, pravidlo alebo metodika.\newline 
+V tejto práci sa preto chceme venovať aplikovaniu metódy rekurentných neurónových sietí na špecifiká dát, ktoré máme dostupné. Extrahujeme z datasetu sekvencie dát, reprezentujúce vstup do definovaného modelu. Predspracovaním očistíme dáta od nevhodných záznamov a vytvoríme vhodnú reprezentáciu informácií, ktoré v datasete považujeme za zaujímavé v zmysle riešenia definovaného problému.\newline
+Otestujeme rôzne architektúry modelov, ktoré majú v rámci výskumu silné indikácie pre potenciál na riešenie daného problému a vyhodnotíme dopad jednotlivých nastavení a hyperparametrov. Definujeme metriky sledujúce potenciálne rôzne záujmy sféry, ktorá v praxi implementuje odporúčacie systémy.
+
+Problém predikcie používateľského správania v tejto práci definujeme ako schopnosť rozoznať vzory v navigácii používateľov medzi produktami dostupnými v ponuke a odporúčania partnera, ktorého produkt by mal byť odporučený v nasledovnom kroku. Pre tento problém testujeme mnoho-k-jednej architektúru rekurentnej neurónovej siete.
