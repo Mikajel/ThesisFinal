@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="3bf1bd5a-bdf4-4ebc-aab6-69a199126677" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/_doc/thesis/analysis.tex" afterPath="$PROJECT_DIR$/_doc/thesis/analysis.tex" />
       <change beforePath="$PROJECT_DIR$/_doc/thesis/design.tex" afterPath="$PROJECT_DIR$/_doc/thesis/design.tex" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -42,8 +41,8 @@
       <file leaf-file-name="lstm.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/lstm.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1601">
-              <caret line="397" column="0" lean-forward="false" selection-start-line="397" selection-start-column="0" selection-end-line="397" selection-end-column="0" />
+            <state relative-caret-position="443">
+              <caret line="60" column="4" lean-forward="false" selection-start-line="60" selection-start-column="4" selection-end-line="60" selection-end-column="4" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
               </folding>
@@ -424,7 +423,14 @@
       <option name="project" value="LOCAL" />
       <updated>1524683338305</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Added architecture and stuff.">
+      <created>1524935313035</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1524935313035</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TodoView" selected-index="4">
@@ -503,7 +509,8 @@
     <MESSAGE value="Minor fix in logging to file&#10;- typo in metadata&#10;- incorrect variable print" />
     <MESSAGE value="Adding thesis document into repository." />
     <MESSAGE value="Reworking analysis and introduction" />
-    <option name="LAST_COMMIT_MESSAGE" value="Reworking analysis and introduction" />
+    <MESSAGE value="Added architecture and stuff." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added architecture and stuff." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1171,8 +1178,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/lstm.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1601">
-          <caret line="397" column="0" lean-forward="false" selection-start-line="397" selection-start-column="0" selection-end-line="397" selection-end-column="0" />
+        <state relative-caret-position="443">
+          <caret line="60" column="4" lean-forward="false" selection-start-line="60" selection-start-column="4" selection-end-line="60" selection-end-column="4" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
           </folding>

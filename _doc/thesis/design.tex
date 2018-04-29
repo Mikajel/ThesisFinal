@@ -147,16 +147,34 @@ Na obrázku~\ref{fig:myrnnarch} je všeobecný návrh použitej architektúry. N
 \subsubsection*{Výpočet a propagácia chyby}
 Výsledný signál na výstupe neurónovej siete v poslednom časovom kroku je transformovaný na one-hot vektor hodnôt, kde najsilnejší signál reprezentuje cieľovú triedu(partnera pre odporúčanie). Tento vektor sa následne porovnáva s predpočítaným cieľovým vektorom patriacim k vstupným vektorom vzorky z datasetu.\newline
 Používame dva typy chybovej funkcie:\newline
-\textbf{Softmax krížová entropia}\newline
+
+\textbf{1. Krížová entropia}
+\label{cross_entropy}
 
 Definovaná ako:
-$$H_{y'}(y) = - \sum_{i} ({y_i' \log(y_i) + (1-y_i') \log (1-y_i)})$$
-$H_{y'}(y)$ - výsledná chyba\newline
+$$H(y',y) = -\sum_{\forall i} y'_i log(y_i)$$
+$H(y',y)$ - výsledná chyba\newline
 $i$ - index triedy vo vektoroch\newline
 $y_i$ - predikovaná hodnota pre triedu \textit{i}\newline
 $y_i'$ - cieľová hodnota pre triedu \textit{i}\newline
 
-\textbf{Váhovaná softmax krížová entropia}\newline
+Krížová entropia počíta sumu chýb nad jednotlivými triedami. Suma však reálne započíta iba chybu nad predikovanou triedou, keďže nesprávne triedy produkujú nulovú hodnotu pre $y'_i$, ktorý funguje ako kvantifikátor pre chybu danej triedy. Tento prístup teda trestá iba neschopnosť predikovať správnu triedu, pri výstupe s aplikáciou softmaxu toto však nepredstavuje problém.
+
+\textbf{2. Váhovaná krížová entropia}
+\label{weighted_cross_entropy}
+
+Podobne ako krížová entropia, váhovaná krížová entropia trestá nesprávnu klasifikáciu cieľovej triedy po aplikovaní softmaxu na výsledný vektor. Výsledný chybový vektor je však ešte násobený maskou váh pre jednotlivé triedy na výstupe.\newline
+\textbf{Vektor chybových váh} je predpočítaný vektor pre výstupné triedy. Motiváciou pre použitie váh pri trénovaní je kompenzácia pre nevyvážený dataset. \textbf{Problém nevyváženého datasetu} môže spôsobiť, že model sa naučí predikovať majoritnú triedu a odignoruje potrebu učenia sa pre vzory v minoritných triedach. Pokiaľ je v našom záujme pozitívne diskriminovať minoritné triedy na úkor majoritných tried, jedným z prístupov je váhované učenie. Jednotlivé triedy majú predpočítané váhy, ktorými sa násobí chyba pre danú triedu. Trestanie modelu tak favorizuje vyššie zmeny pri nesprávnej klasifikácii minoritných tried, čím zabraňuje modelu uspokojiť sa s vysokým skóre pre majoritné triedy.\newline
+Definujeme vlastný vzorec pre výpočet váh jednotlivých tried. Výpočet sa zakladá na inverznej početnosti jednotlivých tried, t.j. kvantifikátor narastá s nižšou početnosťou danej triedy v datasete.
+
+$$ W_i = (1 - \frac{n_i}{2*n_{max}})^m $$
+$i$ - index triedy, pre ktorú je počítaná váha\newline
+$W_i$ - výsledná váha pre triedu \textit{i}\newline
+$n_i$ - početnosť triedy \textit{i}\newline
+$n_{max}$ - najvyššia registrovaná početnosť pre triedu\newline
+$m$ - konštanta, usmerňuje rozostupy medzi jednotlivými triedami. \newline 
+
+Trieda s početnosťou \textbf{1\%} z maximálnej početnosti tried má váhovací parameter \textbf{0,99}, pričom trieda s početnosťou \textbf{10\%} má parameter \textbf{0,97}. Konštantná mocnina \textbf{m} je v našom datasete empirickým testovaním stanovená v okolí hodnoty \textbf{4}. Nová váha pre 1\% triedu je \textbf{0,961} a pre 10\% triedu \textbf{0,885}. Tieto hodnoty lepšie reprezentujú vzdialenosť medzi početnosťami jednotlivých tried v zmysle škálovania váh.
 
 % TODO opis vahovanie chyby a toto hento tamto veci 
 
@@ -164,12 +182,74 @@ $y_i'$ - cieľová hodnota pre triedu \textit{i}\newline
 
 Učenie prebieha v epochách variabilného počtu. Pre zníženie problému preučenia sú tréningové dáta zamiešané pred každou novou epochou. Učenie následne prebieha v dávkach, kde je po každej dávke vypočítaná a spätne propagovaná chyba(\textit{loss}).
 
+Zastavovanie trénovania modelu je určené pomocou testovacej podčasti datasetu. Po každej epoche sa vypočíta percentuálne skóre, s ktorým model klasifikuje vzorky v testovacej sade. Učenie končí, keď sa testovacia množina prestane zlepšovať a začína sa zhoršovať, pričom trénovacia množina svoje skóre stále zlepšuje(začiatok preučenia).
+
+\textbf{Problém variability testovacieho skóre}\newline
+Ajkeď v priebehu epoch je na skóre testovacej množiny pozorovateľné, že model konverguje k riešeniu, variabilita skóre na testovacej množine neumožňuje jednoduché zastavovanie pri zhoršení testovacieho skóre voči predchádzajúcej epoche. Prezentujeme preto \textbf{prístup kĺzavého okna}(\textit{sliding window}).
+
+Definujeme minimálny počet epoch, ktorými musí tréning prejsť. Po týchto epochách je zastavenie/nezastavenie tréningu modelu rozhodované porovnaním skóre z aktuálnej epochy voči priemeru skóre z posledných \textbf{n} epoch(kĺzavé okno). Učenie je zastavované, ak je aktuálne skóre horšie ako priemer z kĺzavého okna~\ref{fig:slidingwindow.png}.
 
 
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{slidingwindow.png}\end{center}
+\caption[slidingwindow.png]{Zastavovanie trénovania modelu kĺzavým oknom priemeru}
+\label{fig:slidingwindow.png}
+\medskip
+\small
+$$\frac{\sum_{\forall i}score(i)}{m}; i \in <n-1;n-m-1>$$\newline
+
+Výpočet priemeru z kĺzavého okna. Pokiaľ nepresiahne hodnotu $score(n)$, trénovanie modelu pokračuje.\newline
+
+$i$ - číslo epochy\newline
+$n$ - počet epoch, ktoré ubehli; číslo aktuálnej epochy\newline
+$m$ - veľkosť kĺzavého okna v epochách\newline
+$score(i)$ - skóre modelu na testovacej sade v epoche \textit{i}\newline
+\end{figure} 
 
 
 \section{Metriky}
+\label{metrics}
 
+Používame metriky na evaluáciu výsledného modelu. Tieto potrebné pre porovnanie jednotlivých modelov a formálne definujú stanovenú objektívnu funkciu pre tento výzkum. Využívané sú dve hlavné metriky sledujúce dve alternatívy interpretácie zadania.
+
+\subsection{Presnosť klasifikácie}
+\label{simple_score}
+
+Presnosť(z ang. \textit{accuracy}) je jednoduchá metrika sledujúca percentuálnu úspešnosť v predikovaní za použitia testovaného modelu. Je definovaná ako priemer z úspešnosti v danej podsade(trénovacej, testovacej alebo validačnej), kde úspešnosť na jednu vzorku je ohodnotená binárne, tj. \textbf{1} v prípadne úspešnej klasifikácie a \textbf{0} v prípade nesprávnej klasifikácie.
+
+$$A(d) = 100*\frac{\sum_{\forall i}score(s_i)}{n}; i \in <1;n>$$
+
+\[
+    score(s_i)= 
+\begin{dcases}
+    1,& \text{ak } max\_index(y_i) = max\_index(y'_i)\\
+    0,              & \text{inak}
+\end{dcases}
+\]
+
+$d$ - dataset, nad ktorým počítame skóre\newline
+$n$ - veľkosť datasetu \textit{d}\newline
+$s_i$ - vzorka \textit{i} v datasete \newline
+$score(s_i)$ - skóre za klasifikáciu vzorky $s_i$, $score(s_i) \in \{0, 1\}$\newline
+$max\_index(v)$ - index najvyššej hodnoty vo vektore \textit{v}\newline
+$y; y'$ - vektor z výstupnej vrstvy; cieľový vektor vzorky
+
+\subsection{Váhovaná klasifikácia}
+\label{weighted_score}
+
+V niektorých prípadov je relevantné použiť iba klasickú presnosť. V takýchto prípadoch nie je záujem nejakým spôsobom zvažovať ako dopadli jednotlivé triedy pri klasifikácii. Často je však nutné riešiť práve takúto úlohu. V prípade tried s minoritným zastúpením je nutné motivovať model aby neignoroval minoritné triedy, ktoré by za bežných podmienok nemali veľký dopad na presnosť celkovej dátovej sady ako je definovaná v~\ref{simple_score}.\newline
+Definujeme preto metriku váhovaného skóre, ktoré využíva váhy tried~\ref{weighted_cross_entropy} pre kvantifikáciu skóre za klasifikáciu v rámci jednotlivých tried. Porovnávanie váhovanej presnosti pre jednotlivé modely nám ukazuje, do akej miery sú schopné klasifikovať triedy bez ohľadu na ich zastúpenie v datasete. Tento prístup mení definíciu skóre za klasifikáciu vzorky:
+
+\[
+    score(s_i)= 
+\begin{dcases}
+    w_x*1,& \text{ak } max\_index(y_i) = max\_index(y'_i)\\
+    0,              & \text{inak}
+\end{dcases}
+\]
+
+$w_x$ - váha pre skóre cieľovej triedy \textit{x}; $x = max\_index(y'_i)$
 
 \section{Implementácia}
 \label{implementation}
