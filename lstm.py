@@ -313,9 +313,16 @@ def run_training(
 
     predictions = tf.nn.softmax(logits)
 
-    class_weights = tf.constant(class_weights)
-    class_weights = tf.reshape(class_weights, [1, n_classes])
-    weighted_logits = tf.multiply(logits, class_weights)
+    tensor_class_weights = tf.constant(class_weights)
+    tensor_class_weights = tf.reshape(tensor_class_weights, [1, n_classes])
+    matrix_class_weights = tf.tile(
+                    tensor_class_weights,
+                    [batch_size, 1]
+                )
+
+    print('weight matrix shape:')
+    print(matrix_class_weights.shape)
+    weighted_logits = tf.multiply(logits, tensor_class_weights)
 
     if use_class_weights:
         loss_function = tf.reduce_mean(
@@ -349,25 +356,38 @@ def run_training(
     correct_pred = tf.equal(tf.argmax(predictions, 1), tf.argmax(y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
-    # FIXME: must multiple elementwise, now I am multiplying [batch_size(bool samples)] to [output_size(float weights)]
-    print(predictions.shape)
+    rewards = tf.multiply(
+        matrix_class_weights,
+        y
+    )
+    max_score = tf.reduce_sum(rewards)
+
     score = tf.reduce_sum(
         tf.multiply(
-            tf.cast(
-                tf.equal(
-                    tf.argmax(predictions, 1),
-                    tf.argmax(y, 1)
-                ),
-                tf.float32),
-            tf.reshape(
-                tf.tile(
-                    class_weights,
-                    [batch_size, 1]
-                ),
-                [batch_size, n_classes]
-            )
+            rewards,
+            predictions
         )
     )
+
+    # FIXME: must multiple elementwise, now I am multiplying [batch_size(bool samples)] to [output_size(float weights)]
+    print(predictions.shape)
+    # score = tf.reduce_sum(
+    #     tf.multiply(
+    #         tf.cast(
+    #             tf.equal(
+    #                 tf.argmax(predictions, 1),
+    #                 tf.argmax(y, 1)
+    #             ),
+    #             tf.float32),
+    #         tf.reshape(
+    #             tf.tile(
+    #                 class_weights,
+    #                 [batch_size, 1]
+    #             ),
+    #             [batch_size, n_classes]
+    #         )
+    #     )
+    # )
 
     init = tf.global_variables_initializer()
 
@@ -416,14 +436,23 @@ def run_training(
 
             batch_valid_accuracies = []
             valid_score = 0
+            max_valid_score = 0
 
             for index in range(0, len(x_valid), batch_size):
                 x_batch_valid = x_valid[index:index + batch_size]
                 y_batch_valid = y_valid[index:index + batch_size]
 
-                bva, bvs = session.run([accuracy, score], feed_dict={x: x_batch_valid, y: y_batch_valid})
-                batch_valid_accuracies.append(bva)
-                valid_score += bvs
+                try:
+                    bva, bvs, ts = session.run([accuracy, score, max_score], feed_dict={x: x_batch_valid, y: y_batch_valid})
+
+                    batch_valid_accuracies.append(bva)
+                    valid_score += bvs
+                    max_valid_score += ts
+
+                # for the last batch, incompatible shape
+                except tf.errors.InvalidArgumentError:
+                    pass
+
 
             epoch_train_accuracy = 100 * np.mean(batch_train_accuracies)
             epoch_valid_accuracy = 100 * np.mean(batch_valid_accuracies)
@@ -432,6 +461,11 @@ def run_training(
             log += 'Average train batch accuracy: {0:.4f}%\n'.format(epoch_train_accuracy)
             log += 'Validation accuracy: {0:.4f}%\n'.format(epoch_valid_accuracy)
             log += 'Validation score: {0:.4f}%\n\n'.format(valid_score)
+
+            print('Epoch:     {}'.format(epoch))
+            print('Score:     {}'.format(valid_score))
+            print('Max score: {}'.format(max_valid_score))
+            print('% score:   {0:.4f}\n'.format(100*valid_score/max_valid_score))
 
             if (np.mean(epoch_valid_accuracies[-10:]) - epoch_valid_accuracy > 0.2) and (epoch >= min_epoch_amount):
                 log += 'Stopping training because:\n'
@@ -446,14 +480,26 @@ def run_training(
 
         batch_test_accuracies = []
         test_score = 0
+        max_test_score = 0
 
         for index in range(0, len(x_test), batch_size):
             x_batch_test = x_test[index:index + batch_size]
             y_batch_test = y_test[index:index + batch_size]
 
-            bta, bts = session.run([accuracy, score], feed_dict={x: x_batch_test, y: y_batch_test})
-            batch_test_accuracies.append(bta)
-            test_score += bts
+            try:
+                bta, bts, ts = session.run([accuracy, score, max_score], feed_dict={x: x_batch_test, y: y_batch_test})
+                batch_test_accuracies.append(bta)
+                test_score += bts
+                max_test_score += ts
+
+            # for the last batch, incompatible shape
+            except tf.errors.InvalidArgumentError:
+                pass
+
+        print('Epoch:     {}'.format(epoch))
+        print('Score:     {}'.format(test_score))
+        print('Max score: {}'.format(max_test_score))
+        print('% score:   {0:.4f}\n'.format(100 * test_score / max_test_score))
 
         log += 'Test accuracy: {0:.4f}%\n'.format(100 * np.mean(batch_test_accuracies))
         log += 'Test score: {0:.4f}%\n\n'.format(test_score)
