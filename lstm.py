@@ -19,14 +19,15 @@ def load_shuffled_train_valid_test(
         flag_oversample: bool,
         flag_undersample: bool,
         sampling_target_amount: int):
+
     all_user_vectors = []
 
     partners_list = []
     partner_numerosities = {}
 
     for filepath in filepaths:
-        with open(path.join(getcwd(), cfg.dir_sorted_partner_vectors_input_with_partners, filepath),
-                  'rb') as vector_file:
+
+        with open(filepath, 'rb') as vector_file:
 
             current_file_vectors = pickle.load(vector_file)
 
@@ -66,12 +67,8 @@ def load_shuffled_train_valid_test(
         class_weights.append(
             current_class_weight
         )
-        if partner_numerosities[partner_id] > 100:
-            print('Partner vectors amount: {}'.format(partner_numerosities[partner_id]))
-            print('Max vector amount*2: {}'.format(max_vector_amount * 2))
-            print('Result class weight: {}\n'.format(current_class_weight))
 
-    print(class_weights)
+        print('{} : {} : {:.4f}'.format(partner_id, partner_numerosities[partner_id], current_class_weight))
 
     shuffle(all_user_vectors)
 
@@ -98,54 +95,31 @@ def load_shuffled_train_valid_test(
     return x_train, y_train, x_valid, y_valid, x_test, y_test, class_weights
 
 
-def show_dataset_class_distribution(filepaths: [str]):
-    reverse_partners_count = {}
-
-    input_batch_filepaths = sorted(
-        [path.join(getcwd(), cfg.dir_sorted_partner_vectors_input_with_partners, filename)
-         for filename in listdir(path.join(getcwd(), cfg.dir_sorted_partner_vectors_input_with_partners))]
-    )
-
-    for filepath in filepaths:
-        with open(path.join(getcwd(), cfg.dir_partners_grouped_vectors, filepath), 'rb') as vector_file:
-
-            partner_id = filepath.split('_')[-1]
-            partner_vector_count = len(pickle.load(vector_file))
-
-            try:
-                reverse_partners_count[partner_vector_count].append(partner_id)
-            except KeyError:
-                reverse_partners_count[partner_vector_count] = [partner_id]
-
-    # ordering dict by vector amount
-    ordered = OrderedDict()
-
-    while len(reverse_partners_count.keys()):
-        max_vectors = max(reverse_partners_count.keys())
-        max_partners = reverse_partners_count[max_vectors]
-
-        ordered[max_vectors] = max_partners
-
-        reverse_partners_count.pop(max_vectors, None)
-
-    for vector_count, partner_ids in ordered.items():
-        print('Samples: {}'.format(vector_count).ljust(15, ' ') + 'Partners amount: {}'.format(len(partner_ids)))
-
-
-def get_input_target_lengths(check_print: bool = False) -> (int, int, int):
+def get_input_target_lengths(flag_heavy_vectors: bool, check_print: bool = False) -> (int, int, int):
     """
     Get vector shapes
     :param check_print:
     bool, print shapes into console
+    :param flag_heavy_vectors:
+    use vectors with partner_id one-hot subvector on inputs
     :return:
     size of input vector, number of steps, size of output vector
     """
 
-    with open(path.join(
+    if flag_heavy_vectors:
+        sample_filepath = path.join(
             getcwd(),
             cfg.dir_sorted_partner_vectors_input_with_partners,
             cfg.sorted_heavy_partner_vectors_baseline_filename + '13295'
-    ), 'rb') as vector_file:
+        )
+    else:
+        sample_filepath = path.join(
+            getcwd(),
+            cfg.dir_partners_grouped_vectors,
+            cfg.sorted_partner_vectors_baseline_filename + '13295'
+        )
+
+    with open(sample_filepath, 'rb') as vector_file:
 
         all_users_vectors = pickle.load(vector_file)
 
@@ -227,18 +201,22 @@ def RNN_1(
     return output_layer
 
 
-def load_dataset():
+def load_dataset(flag_heavy_vectors: bool, flag_undersample: bool, flag_oversample: bool):
 
     dataset_split_ratio = cfg.dataset_split
-    flag_oversample = False
-    flag_undersample = True
     sampling_target_amount = 100
     required_sample_amount = 50
 
-    input_batch_filepaths = sorted(
-        [path.join(getcwd(), cfg.dir_sorted_partner_vectors_input_with_partners, filename)
-         for filename in listdir(path.join(getcwd(), cfg.dir_sorted_partner_vectors_input_with_partners))]
-    )
+    if flag_heavy_vectors:
+        input_batch_filepaths = sorted(
+            [path.join(getcwd(), cfg.dir_sorted_partner_vectors_input_with_partners, filename)
+             for filename in listdir(path.join(getcwd(), cfg.dir_sorted_partner_vectors_input_with_partners))]
+        )
+    else:
+        input_batch_filepaths = sorted(
+            [path.join(getcwd(), cfg.dir_partners_grouped_vectors, filename)
+             for filename in listdir(path.join(getcwd(), cfg.dir_partners_grouped_vectors))]
+        )
 
     print('Loading dataset into train, valid, test')
     dataset_loading_start = time.time()
@@ -270,7 +248,8 @@ def run_training(
         model_type: str,
         optimizer_type: str,
         use_class_weights: bool,
-        train: bool):
+        train: bool,
+        flag_heavy_vectors: bool):
 
     logtime_begin = str(datetime.datetime.now())
 
@@ -295,7 +274,7 @@ def run_training(
 
     x_train, y_train, x_valid, y_valid, x_test, y_test, class_weights = dataset
 
-    n_input, n_steps, n_classes = get_input_target_lengths(check_print=False)
+    n_input, n_steps, n_classes = get_input_target_lengths(flag_heavy_vectors, check_print=False)
 
     x = tf.placeholder("float", [None, n_steps, n_input])
     y = tf.placeholder("float", [None, n_classes])
@@ -311,34 +290,6 @@ def run_training(
         train=train
     )
 
-    predictions = tf.nn.softmax(logits)
-
-    tensor_class_weights = tf.constant(class_weights)
-    tensor_class_weights = tf.reshape(tensor_class_weights, [1, n_classes])
-    matrix_class_weights = tf.tile(
-                    tensor_class_weights,
-                    [batch_size, 1]
-                )
-
-    print('weight matrix shape:')
-    print(matrix_class_weights.shape)
-    weighted_logits = tf.multiply(logits, tensor_class_weights)
-
-    if use_class_weights:
-        loss_function = tf.reduce_mean(
-            tf.nn.softmax_cross_entropy_with_logits(
-                logits=weighted_logits,
-                labels=y
-            )
-        )
-    else:
-        loss_function = tf.reduce_mean(
-            tf.nn.softmax_cross_entropy_with_logits(
-                logits=logits,
-                labels=y
-            )
-        )
-
     if optimizer_type == 'adam':
         optimizer_constructor = tf.train.AdamOptimizer
     elif optimizer_type == 'sgd':
@@ -350,50 +301,62 @@ def run_training(
     else:
         raise ValueError('Value {} is not a valid string for declaring optimizer type'.format(optimizer_type))
 
-    optimizer = optimizer_constructor(learning_rate=learning_rate)
-    train_op = optimizer.minimize(loss_function)
+    predictions = tf.nn.softmax(logits)
+
+    tensor_class_weights = tf.constant(class_weights)
+    tensor_class_weights = tf.reshape(tensor_class_weights, [1, n_classes])
+    matrix_class_weights = tf.tile(
+                    tensor_class_weights,
+                    [batch_size, 1]
+                )
 
     correct_pred = tf.equal(tf.argmax(predictions, 1), tf.argmax(y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
-    rewards = tf.multiply(
-        matrix_class_weights,
-        y
-    )
-    max_score = tf.reduce_sum(rewards)
+    rewards = tf.reduce_sum(tf.multiply(matrix_class_weights, y), 1)
 
     score = tf.reduce_sum(
         tf.multiply(
-            rewards,
-            predictions
+            tf.cast(correct_pred, tf.float32),
+            rewards
         )
     )
 
-    # FIXME: must multiple elementwise, now I am multiplying [batch_size(bool samples)] to [output_size(float weights)]
-    print(predictions.shape)
-    # score = tf.reduce_sum(
-    #     tf.multiply(
-    #         tf.cast(
-    #             tf.equal(
-    #                 tf.argmax(predictions, 1),
-    #                 tf.argmax(y, 1)
-    #             ),
-    #             tf.float32),
-    #         tf.reshape(
-    #             tf.tile(
-    #                 class_weights,
-    #                 [batch_size, 1]
-    #             ),
-    #             [batch_size, n_classes]
-    #         )
-    #     )
-    # )
+    max_score = tf.reduce_sum(
+        tf.multiply(
+            matrix_class_weights,
+            y
+        )
+    )
+
+    if use_class_weights:
+        loss_function = tf.reduce_mean(
+            tf.multiply(
+                tf.nn.softmax_cross_entropy_with_logits(
+                    logits=logits,
+                    labels=y
+                ),
+                rewards
+            )
+        )
+    else:
+        loss_function = tf.reduce_mean(
+            tf.nn.softmax_cross_entropy_with_logits(
+                logits=logits,
+                labels=y
+            )
+        )
+
+    optimizer = optimizer_constructor(learning_rate=learning_rate)
+    train_op = optimizer.minimize(loss_function)
 
     init = tf.global_variables_initializer()
 
     with tf.Session() as session:
 
         session.run(init)
+
+        print('///////////////////////////////////////////////////////////////////////////////////')
 
         epoch = 0
         epoch_valid_accuracies = []
@@ -420,17 +383,21 @@ def run_training(
                 x_batch_train = x_train_shuffled[index:index + batch_size]
                 y_batch_train = y_train_shuffled[index:index + batch_size]
 
-                session.run(train_op, feed_dict={x: x_batch_train, y: y_batch_train})
+                try:
+                    session.run(train_op, feed_dict={x: x_batch_train, y: y_batch_train})
 
-                loss, batch_accuracy = session.run(
-                    [loss_function, accuracy],
-                    feed_dict={
-                        x: x_batch_train,
-                        y: y_batch_train
-                    }
-                )
+                    loss, batch_accuracy = session.run(
+                        [loss_function, accuracy],
+                        feed_dict={
+                            x: x_batch_train,
+                            y: y_batch_train
+                        }
+                    )
 
-                batch_train_accuracies.append(batch_accuracy)
+                    batch_train_accuracies.append(batch_accuracy)
+                # error with the last batch having different shape
+                except tf.errors.InvalidArgumentError:
+                    pass
 
             log += '\nValidating after epoch: \n'
 
@@ -460,12 +427,16 @@ def run_training(
             log += 'Loss after epoch:    {0:.4f}\n'.format(loss)
             log += 'Average train batch accuracy: {0:.4f}%\n'.format(epoch_train_accuracy)
             log += 'Validation accuracy: {0:.4f}%\n'.format(epoch_valid_accuracy)
-            log += 'Validation score: {0:.4f}%\n\n'.format(valid_score)
+            log += 'Validation score: {0:.4f}\n\n'.format(valid_score)
 
             print('Epoch:     {}'.format(epoch))
-            print('Score:     {}'.format(valid_score))
-            print('Max score: {}'.format(max_valid_score))
+            print('Score:     {0:.4f}'.format(valid_score))
             print('% score:   {0:.4f}\n'.format(100*valid_score/max_valid_score))
+
+            print('Loss: {:.4f}\n'.format(loss))
+
+            print('Avg train batch accuracy: {0:.4f}%'.format(epoch_train_accuracy))
+            print('Validation accuracy:      {0:.4f}%\n'.format(epoch_valid_accuracy))
 
             if (np.mean(epoch_valid_accuracies[-10:]) - epoch_valid_accuracy > 0.2) and (epoch >= min_epoch_amount):
                 log += 'Stopping training because:\n'
