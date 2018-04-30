@@ -420,7 +420,6 @@ def run_training(
                 except tf.errors.InvalidArgumentError:
                     pass
 
-
             epoch_train_accuracy = 100 * np.mean(batch_train_accuracies)
             epoch_valid_accuracy = 100 * np.mean(batch_valid_accuracies)
 
@@ -438,7 +437,7 @@ def run_training(
             print('Avg train batch accuracy: {0:.4f}%'.format(epoch_train_accuracy))
             print('Validation accuracy:      {0:.4f}%\n'.format(epoch_valid_accuracy))
 
-            if (np.mean(epoch_valid_accuracies[-10:]) - epoch_valid_accuracy > 0.2) and (epoch >= min_epoch_amount):
+            if (np.mean(epoch_valid_accuracies[-10:]) > epoch_valid_accuracy) and (epoch >= min_epoch_amount):
                 log += 'Stopping training because:\n'
                 log += '\tAverage valid accuracy(current epoch): {0:.4f}%\n'.format(epoch_valid_accuracy)
                 log += '\tAverage valid accuracy(last N epochs): {0:.4f}%\n'.format(np.mean(epoch_valid_accuracies[-10:]))

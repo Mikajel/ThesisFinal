@@ -78,9 +78,8 @@ events_targeting_deals = [
     'visit_rating_page'
 ]
 
-required_sample_amount = 50
+required_sample_amount = 25
 target_sample_amount = 100
-flag_heavy_vectors = True
 dataset_split = (0.7, 0.2, 0.1)
 
 learning_rate = 0.001
